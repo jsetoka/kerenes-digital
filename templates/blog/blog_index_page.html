@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+
+<!-- ====================== FEATURED ====================== -->
+<h2 class="mb-3">À la une</h2>
+<div class="row g-4 mb-5">
+  {% for article in featured_articles %}
+    {% with post=article.specific %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <a href="{{ post.url }}" class="text-decoration-none text-reset">
+        <div class="card h-100 shadow-sm border-0">
+          {% if post.image %}
+            {# 16:9 cover #}
+            <div class="position-relative overflow-hidden" style="max-height: 150px;">
+              {% image post.image fill-600x450 class="w-100 h-100 object-fit-cover" loading="lazy" %}
+              <span class="position-absolute top-0 start-0 m-2 badge bg-primary">À la une</span>
+            </div>
+          {% endif %}
+          <div class="card-body">
+            <h3 class="h5 mb-2">{{ post.title }}</h3>
+            <p class="text-muted small mb-2">{{ post.date }}</p>
+            {% comment %} <p class="mb-0 text-muted">{{ post.intro|richtext }}</p> {% endcomment %}
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endwith %}
+  {% empty %}
+    <p>Aucun article à la une.</p>
+  {% endfor %}
+</div>
+
+<!-- ====================== RECENTS ====================== -->
+<h2 class="mb-3">Articles récents</h2>
+<div class="list-group mb-3">
+  {% for article in recent_articles_page %}
+    {% with post=article.specific %}
+      <div class="row align-items-center py-3 border-bottom">
+        <!-- Colonne texte -->
+        <div class="col-12 col-md-10">
+          <div class="d-flex justify-content-between">
+            <h3 class="h6 mb-1">
+              <a href="{{ post.url }}" class="text-decoration-none">{{ post.title }}</a>
+            </h3>
+            <small class="text-muted">{{ post.date }}</small>
+          </div>
+          <p class="mb-0 text-muted">{{ post.intro|richtext }}</p>
+        </div>
+
+        <!-- Colonne image -->
+        {% if post.image %}
+        <div class="col-12 col-md-2 text-end">
+          <div class="ratio ratio-4x3 rounded overflow-hidden d-inline-block" style="max-width: 150px;">
+            <a href="{{ post.url }}" class="text-decoration-none">{% image post.image fill-200x150 class="w-100 h-100 object-fit-cover" loading="lazy" %}</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    {% endwith %}
+  {% empty %}
+    <p>Pas encore d’articles.</p>
+  {% endfor %}
+</div>
+
+{% if recent_articles_page.paginator.num_pages > 1 %}
+<nav aria-label="Pagination des articles">
+  <ul class="pagination justify-content-center">
+    {% if recent_articles_page.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ recent_articles_page.previous_page_number }}">Précédent</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Précédent</span></li>
+    {% endif %}
+
+    {% for num in recent_articles_page.paginator.page_range %}
+      {% if num >= recent_articles_page.number|add:"-2" and num <= recent_articles_page.number|add:"2" %}
+        <li class="page-item {% if num == recent_articles_page.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+      {% elif num == 1 or num == recent_articles_page.paginator.num_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+      {% elif forloop.first or forloop.last %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if recent_articles_page.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ recent_articles_page.next_page_number }}">Suivant</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Suivant</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,7 @@
+Django>=5.0,<6
+wagtail>=6.0,<7
+psycopg2-binary
+python-dotenv
+whitenoise
+Pillow
+gunicorn

@@ -1,0 +1,56 @@
+{# templates/contact/contact_form_page.html #}
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container my-5">
+  <h1>{{ page.title }}</h1>
+
+  <form action="{% pageurl page %}" method="post" novalidate>
+    {% csrf_token %}
+
+    {# Champs générés dynamiquement par Wagtail (hors consent) #}
+    {% for field in form.visible_fields %}
+      {% if field.name != "consent" %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+          {% endif %}
+          {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {# Bloc consentement en bas du formulaire #}
+    {% if form.consent %}
+
+      <div class="form-check mb-3">
+        {{ form.consent|add_class:"form-check-input" }}
+        <label class="form-check-label" for="{{ form.consent.id_for_label }}">
+          {# Texte admin (riche) #}
+          {% if page.consent_text %}
+            {{ page.consent_text|richtext }}
+          {% else %}
+            J’accepte de recevoir des e-mails d’information. Je peux me désabonner à tout moment via le lien en bas de chaque e-mail.
+          {% endif %}
+          {% if form.consent.field.required %} <span class="text-danger">*</span>{% endif %}
+        </label>
+        {% if form.consent.errors %}
+          <div class="text-danger small">{{ form.consent.errors }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+  </form>
+
+  {% if page.thank_you_text %}
+    <div class="mt-4">{{ page.thank_you_text|richtext }}</div>
+  {% endif %}
+</div>
+{% endblock %}

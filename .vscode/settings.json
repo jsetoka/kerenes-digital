@@ -1,0 +1,19 @@
+{
+  "files.associations": {
+    "**/templates/**/*.html": "django-html"
+  },
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  },
+
+  // Désactiver le formatage automatique sur les templates Django
+  "[django-html]": {
+    "editor.formatOnSave": false
+  },
+
+  // Si Prettier est installé, ne l’applique pas sur les templates
+  "prettier.disableLanguages": ["django-html", "html"],
+
+  // Option: utiliser djLint (connaît Django) si tu veux un formateur adapté
+  "editor.defaultFormatter": null
+}

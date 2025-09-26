@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}{{ page.title }} — DIBOS{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <h1>{{ page.title }}</h1>
+    {% if page.intro %}<p class="intro">{{ page.intro|richtext }}</p>{% endif %}
+    <div class="stream">
+      {% for block in page.body %}
+        {% if block.block_type == "paragraphe" %}
+          <div class="richtext">{{ block.value|richtext }}</div>
+        {% elif block.block_type == "image" %}
+          {% image block.value width-1200 %}
+        {% else %}
+          {{ block }}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </article>
+{% endblock %}

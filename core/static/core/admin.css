@@ -1,0 +1,32 @@
+/* TEST visuel — retire après si besoin */
+body { outline: 2px solid magenta !important; }
+
+/* Cache les logos par défaut (W7 + fallback W5/6) */
+.w-app-header__brand svg,
+.w-app-header__brand img,
+.w-header__brand svg,
+.w-header__brand img,
+.w-header__logo svg,
+.w-header__logo img,
+.w-login__brand svg,
+.w-login__brand img,
+.w-login__logo svg,
+.w-login__logo img { display: none !important; }
+
+/* Remplace dans l’en-tête (W7: .w-app-header__brand ; fallback: .w-header__brand/.w-header__logo) */
+.w-app-header__brand,
+.w-header__brand,
+.w-header__logo {
+  display: inline-block !important;
+  width: 170px !important;
+  height: 44px !important;
+  background: url("/static/core/img/logo-kerasgo.png") center / contain no-repeat !important;
+}
+
+/* Page de login (W7: .w-login__brand ; fallback: .w-login__logo) */
+.w-login__brand,
+.w-login__logo {
+  width: 220px !important;
+  height: 60px !important;
+  background: url("/static/core/img/logo-kerasgo.png") center / contain no-repeat !important;
+}
