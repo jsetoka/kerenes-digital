@@ -1,0 +1,10 @@
+<section class="mb-4">
+  <h3 class="h6 text-uppercase text-muted mb-2">Tags</h3>
+  <div class="tag-cloud">
+    {% for t in cloud %}
+      <a class="tag tag-size-{{ t.size }}" href="?tag={{ t.name|urlencode }}">{{ t.name }}</a>
+    {% empty %}
+      <span class="text-muted">Aucun tag</span>
+    {% endfor %}
+  </div>
+</section>

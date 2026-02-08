@@ -1,56 +1,116 @@
 {# templates/contact/contact_form_page.html #}
 {% extends "base.html" %}
-{% load wagtailcore_tags %}
-{% load widget_tweaks %}
+{% load wagtailcore_tags widget_tweaks %}
 
 {% block content %}
 <div class="container my-5">
-  <h1>{{ page.title }}</h1>
+  <h1 class="mb-4">{{ page.title }}</h1>
 
-  <form action="{% pageurl page %}" method="post" novalidate>
-    {% csrf_token %}
-
-    {# Champs générés dynamiquement par Wagtail (hors consent) #}
-    {% for field in form.visible_fields %}
-      {% if field.name != "consent" %}
-        <div class="mb-3">
-          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-          {{ field }}
+  {# Résumé d’erreurs global #}
+  {% if form.errors or form.non_field_errors %}
+    <div class="alert alert-danger" role="alert" aria-live="assertive">
+      <p class="mb-2 fw-semibold">Veuillez corriger les champs ci-dessous :</p>
+      <ul class="mb-0 ps-3">
+        {% for field in form.visible_fields %}
           {% if field.errors %}
-            <div class="text-danger small">{{ field.errors }}</div>
+            <li><a href="#{{ field.id_for_label }}" class="alert-link">{{ field.label }}</a> : {{ field.errors|join:", " }}</li>
           {% endif %}
-          {% if field.help_text %}
-            <div class="form-text">{{ field.help_text }}</div>
-          {% endif %}
-        </div>
-      {% endif %}
-    {% endfor %}
+        {% endfor %}
+        {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 
-    {# Bloc consentement en bas du formulaire #}
-    {% if form.consent %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if page.intro %}<div class="mb-3">{{ page.intro|richtext }}</div>{% endif %}
 
-      <div class="form-check mb-3">
-        {{ form.consent|add_class:"form-check-input" }}
-        <label class="form-check-label" for="{{ form.consent.id_for_label }}">
-          {# Texte admin (riche) #}
-          {% if page.consent_text %}
-            {{ page.consent_text|richtext }}
-          {% else %}
-            J’accepte de recevoir des e-mails d’information. Je peux me désabonner à tout moment via le lien en bas de chaque e-mail.
+      <form action="{% pageurl page %}" method="post" novalidate>
+        {% csrf_token %}
+
+        {# Champs dynamiques (hors consent) #}
+        {% for field in form.visible_fields %}
+          {% if field.name != "consent" %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">
+                {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+              </label>
+
+              {# Checkbox #}
+              {% if field.field.widget.input_type == "checkbox" %}
+                <div class="form-check">
+                  {% if field.errors %}
+                    {{ field|add_class:"form-check-input is-invalid"|attr:"aria-invalid:true" }}
+                  {% else %}
+                    {{ field|add_class:"form-check-input" }}
+                  {% endif %}
+                  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+
+              {# Tous les autres widgets (input, textarea, select, etc.) #}
+              {% else %}
+                {# On applique form-control par défaut #}
+                {% if field.errors %}
+                  {{ field|add_class:"form-control is-invalid"|attr:"aria-invalid:true" }}
+                {% else %}
+                  {{ field|add_class:"form-control" }}
+                {% endif %}
+              {% endif %}
+
+              {% if field.help_text %}
+                <div id="{{ field.id_for_label }}_help" class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
           {% endif %}
-          {% if form.consent.field.required %} <span class="text-danger">*</span>{% endif %}
-        </label>
-        {% if form.consent.errors %}
-          <div class="text-danger small">{{ form.consent.errors }}</div>
+        {% endfor %}
+
+        {# Bloc consentement #}
+        {% if form.consent %}
+          <div class="form-check mb-3">
+            {% if form.consent.errors %}
+              {{ form.consent|add_class:"form-check-input is-invalid"|attr:"aria-invalid:true" }}
+            {% else %}
+              {{ form.consent|add_class:"form-check-input" }}
+            {% endif %}
+            <label class="form-check-label" for="{{ form.consent.id_for_label }}">
+              {% if page.consent_text %}
+                {{ page.consent_text|richtext }}
+              {% else %}
+                J’accepte de recevoir des e-mails d’information. Je peux me désabonner à tout moment via le lien en bas de chaque e-mail.
+              {% endif %}
+              {% if form.consent.field.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {% if form.consent.errors %}
+              <div class="invalid-feedback d-block">{{ form.consent.errors|join:", " }}</div>
+            {% endif %}
+          </div>
         {% endif %}
-      </div>
-    {% endif %}
 
-    <button type="submit" class="btn btn-primary">Envoyer</button>
-  </form>
+        <button type="submit" class="btn btn-primary" id="contactSubmitBtn">Envoyer</button>
+        <button type="reset" class="btn btn-outline-secondary ms-2">Réinitialiser</button>
+      </form>
+    </div>
+  </div>
 
   {% if page.thank_you_text %}
     <div class="mt-4">{{ page.thank_you_text|richtext }}</div>
   {% endif %}
 </div>
+
+<script>
+  (function () {
+    const card = document.currentScript.previousElementSibling;
+    const form = card ? card.querySelector('form') : null;
+    const btn = document.getElementById('contactSubmitBtn');
+    if (form && btn) {
+      form.addEventListener('submit', function () {
+        btn.disabled = true; btn.classList.add('disabled'); btn.textContent = 'Envoi…';
+      }, { once: true });
+    }
+  })();
+</script>
 {% endblock %}

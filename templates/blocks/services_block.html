@@ -1,0 +1,36 @@
+{% load wagtailcore_tags %}
+<section class="my-5">
+  {% if value.heading %}
+    <h2 class="mb-3">{{ value.heading }}</h2>
+  {% endif %}
+
+  {% if value.intro %}
+    <div class="mb-4">{{ value.intro|richtext }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    {% for item in value.items %}
+      <div class="col-md-4">
+        <div class="p-4 border rounded h-100">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            {% if item.icon %}
+              <span class="text-muted">{{ item.icon }}</span>
+              {# Si tu utilises FontAwesome: <i class="{{ item.icon }}"></i> #}
+            {% endif %}
+            <h3 class="h5 mb-0">{{ item.title }}</h3>
+          </div>
+
+          {% if item.description %}
+            <p class="mb-3">{{ item.description }}</p>
+          {% endif %}
+
+          {% if item.link_page %}
+            <a href="{{ item.link_page.url }}">En savoir plus →</a>
+          {% elif item.link_url %}
+            <a href="{{ item.link_url }}" target="_blank" rel="noopener">En savoir plus →</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>

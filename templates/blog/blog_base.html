@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load blog_extras %}
+
+{% block content %}
+<div class="container py-4 blog-body">
+  {% comment %}
+    Si tu as la variable blog_index dans le contexte (get_context de HomePage),
+    appelle : {% featured_posts 3 blog_index %}
+    Sinon, appelle simplement sans index : {% featured_posts 3 %}
+  {% endcomment %}
+  {% featured_posts 3 %}
+  <div class="row g-4">
+    <main class="col-lg-8">
+      {% block blog_content %}{% endblock %}
+    </main>
+    <aside class="col-lg-4">
+      {% recent_posts 5 %}
+      {% categories_list %}
+      {% tag_cloud 20 %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

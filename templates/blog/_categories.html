@@ -1,0 +1,15 @@
+<section class="mb-4">
+  <h3 class="h6 text-uppercase text-muted mb-2">Catégories</h3>
+  <ul class="list-unstyled mb-0">
+    {% for c in categories %}
+      <li class="mb-2">
+        <a href="?cat={{ c.slug }}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">
+          {{ c.name }}
+        </a>
+        {% if with_count %}<span class="text-muted small">({{ c.count }})</span>{% endif %}
+      </li>
+    {% empty %}
+      <li class="text-muted">Aucune catégorie</li>
+    {% endfor %}
+  </ul>
+</section>

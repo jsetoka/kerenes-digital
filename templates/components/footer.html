@@ -1,0 +1,63 @@
+{% load wagtailcore_tags %}
+
+{% with f=settings.footer.FooterSettings %}
+<footer class="{{ f.footer_bg_class }} {{ f.footer_text_class }} mt-auto py-4">
+  <div class="container">
+    <div class="row">
+
+      <!-- Colonne 1 -->
+      <div class="col-md-4 mb-3">
+        <h5>{{ f.about_title }}</h5>
+        <div class="small">
+          {{ f.about_text|richtext }}
+        </div>
+      </div>
+
+      <!-- Colonne 2 -->
+      <div class="col-md-4 mb-3">
+        <h5>{{ f.links_title }}</h5>
+        <ul class="list-unstyled">
+          {% for item in f.links %}
+            {% with it=item.value %}
+              <li>
+                {% if it.page %}
+                  <a href="{{ it.page.url }}" class="text-light text-decoration-none">{{ it.label }}</a>
+                {% elif it.url %}
+                  <a href="{{ it.url }}" class="text-light text-decoration-none">{{ it.label }}</a>
+                {% else %}
+                  <span class="text-muted">{{ it.label }}</span>
+                {% endif %}
+              </li>
+            {% endwith %}
+          {% empty %}
+            <li><a href="/a-propos/" class="text-light text-decoration-none">À propos</a></li>
+            <li><a href="/articles/" class="text-light text-decoration-none">Blog</a></li>
+            <li><a href="/contact/" class="text-light text-decoration-none">Contact</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Colonne 3 -->
+      <div class="col-md-4 mb-3">
+        <h5>{{ f.social_title }}</h5>
+        {% for s in f.socials %}
+          {% with so=s.value %}
+            <a href="{{ so.url }}" class="text-light me-2">
+              {% if so.icon_class %}<i class="{{ so.icon_class }}"></i>{% endif %} {{ so.label }}
+            </a><br/>
+          {% endwith %}
+        {% empty %}
+          <a href="#" class="text-light me-2"><i class="bi bi-facebook"></i> Facebook</a><br/>
+          <a href="#" class="text-light me-2"><i class="bi bi-twitter"></i> Twitter</a><br/>
+          <a href="#" class="text-light"><i class="bi bi-linkedin"></i> LinkedIn</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="text-center mt-3 border-top pt-3">
+      <small>© {{ now|date:"Y" }} Kerene's Digital — Tous droits réservés.</small>
+    </div>
+  </div>
+</footer>
+
+{% endwith %}

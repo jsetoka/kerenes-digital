@@ -1,0 +1,18 @@
+{% load wagtailcore_tags %}
+
+<section class="my-5 text-center">
+  {% if value.heading %}
+    <h2 class="mb-3">{{ value.heading }}</h2>
+  {% endif %}
+  {% if value.text %}
+    <div class="mb-4">{{ value.text|richtext }}</div>
+  {% endif %}
+
+  <p>
+    {% if value.page %}
+      <a class="btn btn-primary btn-lg" href="{{ value.page.url }}">{{ value.button_label }}</a>
+    {% elif value.url %}
+      <a class="btn btn-primary btn-lg" href="{{ value.url }}" target="_blank" rel="noopener">{{ value.button_label }}</a>
+    {% endif %}
+  </p>
+</section>

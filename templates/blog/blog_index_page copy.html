@@ -3,6 +3,7 @@
 
 {% block blog_content %}
 
+<!-- ====================== HEADER ====================== -->
 <header class="d-flex align-items-end justify-content-between mb-4">
   <div>
     <h1 class="h3 mb-1">Articles</h1>
@@ -15,49 +16,45 @@
   </div>
 </header>
 
+<!-- ====================== GRID ====================== -->
 {% if posts %}
-  <ul class="list-unstyled">
+  <div class="row g-4">
     {% for article in posts %}
       {% with post=article.specific %}
-      <li class="py-3 border-bottom">
-        <article class="row g-3 align-items-start" itemscope itemtype="https://schema.org/BlogPosting">
+      <div class="col-12 col-md-6 col-lg-4">
+        <article class="card h-100 shadow-sm border-0" itemscope itemtype="https://schema.org/BlogPosting">
+          {% if post.image %}
+            <a href="{{ post.url }}" class="ratio ratio-16x9 card-img-top overflow-hidden">
+              {# Renditions + srcset pour rétine/perf #}
+              {% image post.image fill-480x270 format-webp as img_sm %}
+              {% image post.image fill-960x540 format-webp as img_lg %}
+              <img
+                src="{{ img_sm.url }}"
+                srcset="{{ img_sm.url }} 480w, {{ img_lg.url }} 960w"
+                sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+                alt="{{ post.image.title }}"
+                class="w-100 h-100 object-fit-cover"
+                loading="lazy"
+                itemprop="image">
+            </a>
+          {% endif %}
 
-          {# IMAGE GAUCHE #}
-          <div class="col-12 col-md-3">
-            {% if post.image %}
-              <a href="{{ post.url }}" class="d-block rounded overflow-hidden">
-                {% image post.image fill-480x320 format-webp as img_md %}
-                {% image post.image fill-320x213 format-webp as img_sm %}
-                <img
-                  src="{{ img_sm.url }}"
-                  srcset="{{ img_sm.url }} 320w, {{ img_md.url }} 480w"
-                  sizes="(max-width: 768px) 100vw, 320px"
-                  alt="{{ post.image.title }}"
-                  class="w-100 h-auto"
-                  loading="lazy"
-                  itemprop="image">
-              </a>
-            {% else %}
-              <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height:180px;">
-                <span class="text-muted small">Aperçu indisponible</span>
-              </div>
-            {% endif %}
-          </div>
-
-          {# TEXTE DROITE #}
-          <div class="col-12 col-md-9">
-            <h2 class="h5 mb-1" itemprop="headline">
+          <div class="card-body d-flex flex-column">
+            <h2 class="h5 card-title mb-2" itemprop="headline">
               <a href="{{ post.url }}" class="stretched-link text-decoration-none">{{ post.title }}</a>
             </h2>
 
-            <div class="text-muted small mb-2 d-flex flex-wrap align-items-center gap-2">
+            <div class="text-muted small mb-2 d-flex align-items-center gap-2">
               {% if post.date %}
-                <time datetime="{{ post.date|date:'Y-m-d' }}" itemprop="datePublished">{{ post.date|date:"j F Y" }}</time>
+                <time datetime="{{ post.date|date:'Y-m-d' }}" itemprop="datePublished">
+                  {{ post.date|date:"j F Y" }}
+                </time>
               {% endif %}
-              {# première catégorie si dispo #}
+
+              {# Affiche la première catégorie si dispo #}
               {% if post.categories.all %}
                 {% with cat=post.categories.all.0 %}
-                  <span class="vr d-none d-sm-inline mx-1"></span>
+                  <span class="vr mx-1 d-none d-sm-inline"></span>
                   <a href="?cat={{ cat.slug }}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}"
                      class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none">
                     {{ cat.name }}
@@ -68,39 +65,41 @@
 
             <p class="text-secondary mb-0" itemprop="description">
               {% if post.intro %}
-                {{ post.intro|richtext|striptags|truncatechars:200 }}
+                {{ post.intro|richtext|striptags|truncatechars:160 }}
               {% else %}
-                {{ post.search_description|default:""|truncatechars:200 }}
+                {{ post.search_description|default:""|truncatechars:160 }}
               {% endif %}
             </p>
           </div>
         </article>
-      </li>
+      </div>
       {% endwith %}
     {% endfor %}
-  </ul>
+  </div>
 {% else %}
+  <!-- ====================== EMPTY STATE ====================== -->
   <section class="text-center py-5 my-4 bg-light rounded-3">
     <p class="lead mb-1">Pas encore d’articles.</p>
     <p class="text-muted mb-0">Revenez bientôt pour découvrir nos nouvelles publications.</p>
   </section>
 {% endif %}
 
-{# PAGINATION — conserve cat/tag #}
+<!-- ====================== PAGINATION ====================== -->
 {% if posts and posts.paginator.num_pages > 1 %}
   <nav class="mt-4" aria-label="Pagination des articles">
     <ul class="pagination justify-content-center">
-
       {% if posts.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ posts.previous_page_number }}{% if request.GET.cat %}&cat={{ request.GET.cat|urlencode }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">Précédent</a>
+          <a class="page-link" href="?page={{ posts.previous_page_number }}{% if request.GET.cat %}&cat={{ request.GET.cat|urlencode }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">
+            Précédent
+          </a>
         </li>
       {% else %}
         <li class="page-item disabled"><span class="page-link">Précédent</span></li>
       {% endif %}
 
       {% for num in posts.paginator.page_range %}
-        {% if num == 1 or num == posts.paginator.num_pages or num >= posts.number|add:"-2" and num <= posts.number|add:"2" %}
+        {% if num == 1 or num == posts.paginator.num_pages or (num >= posts.number|add:'-2' and num <= posts.number|add:'2') %}
           <li class="page-item {% if num == posts.number %}active{% endif %}">
             <a class="page-link" href="?page={{ num }}{% if request.GET.cat %}&cat={{ request.GET.cat|urlencode }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">{{ num }}</a>
           </li>
@@ -111,12 +110,13 @@
 
       {% if posts.has_next %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ posts.next_page_number }}{% if request.GET.cat %}&cat={{ request.GET.cat|urlencode }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">Suivant</a>
+          <a class="page-link" href="?page={{ posts.next_page_number }}{% if request.GET.cat %}&cat={{ request.GET.cat|urlencode }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag|urlencode }}{% endif %}">
+            Suivant
+          </a>
         </li>
       {% else %}
         <li class="page-item disabled"><span class="page-link">Suivant</span></li>
       {% endif %}
-
     </ul>
   </nav>
 {% endif %}

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags %}
 
-{% block title %}{{ page.title }} — DIBOS{% endblock %}
+{% block title %}{{ page.title }} — Kerene's Digital{% endblock %}
 
 {% block content %}
-  <article class="page">
+  <article class="card page">
     <h1>{{ page.title }}</h1>
     {% if page.intro %}<p class="intro">{{ page.intro|richtext }}</p>{% endif %}
     <div class="stream">

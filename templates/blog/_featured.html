@@ -1,0 +1,47 @@
+{% load wagtailimages_tags %}
+
+{% if primary %}
+<section class="featured-articles my-4">
+  <div class="row g-4">
+    <!-- Article principal -->
+    <div class="col-lg-8">
+      <article class="card border-0 shadow-sm h-100">
+        {% if primary.image %}
+          {% image primary.image fill-1200x550 class="card-img-top" %}
+        {% endif %}
+        <div class="card-body">
+          <a href="{{ primary.url }}" class="text-decoration-none">
+            <h2 class="h3 card-title">{{ primary.title }}</h2>
+          </a>
+          {% if primary.date %}<div class="text-muted small mb-2">{{ primary.date }}</div>{% endif %}
+          {% if primary.intro %}<p class="mb-0">{{ primary.intro|striptags|truncatechars:180 }}</p>{% endif %}
+        </div>
+      </article>
+    </div>
+
+    <!-- Deux secondaires (empilés) -->
+    <div class="col-lg-4 d-flex flex-column gap-4">
+      {% for p in secondary %}
+      <article class="card border-0 shadow-sm">
+        <div class="row g-0">
+          <div class="col-5">
+            {% if p.image %}
+              {% image p.image fill-600x400 class="img-fluid rounded-start" %}
+            {% endif %}
+          </div>
+          <div class="col-7">
+            <div class="card-body py-2">
+              <a href="{{ p.url }}" class="text-decoration-none">
+                <h3 class="h6 card-title mb-1">{{ p.title }}</h3>
+              </a>
+              {% if p.date %}<div class="text-muted small mb-1">{{ p.date }}</div>{% endif %}
+              {% if p.intro %}<p class="small mb-0">{{ p.intro|striptags|truncatechars:90 }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}

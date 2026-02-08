@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -7,7 +8,8 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "insecure-dev-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv(
+    "ALLOWED_HOSTS", "").split(",") if h.strip()]
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "fr")
 TIME_ZONE = os.getenv("TIME_ZONE", "Africa/Brazzaville")
@@ -24,6 +26,7 @@ INSTALLED_APPS = [
     # Wagtail
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.settings",
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",
@@ -40,6 +43,7 @@ INSTALLED_APPS = [
     "pages",
     "blog",
     "contact",
+    "footer",
     "widget_tweaks",
 ]
 
@@ -68,6 +72,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.main_menu",
+                "wagtail.contrib.settings.context_processors.settings",
             ],
         },
     },
@@ -78,14 +83,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 # DB: SQLite by default; use Postgres if env vars present
 if os.getenv("DB_NAME"):
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-        }
+        "default": dj_database_url.config(
+            default=os.getenv("DATABASE_URL", "sqlite:///db.sqlite3"),
+            conn_max_age=600,
+        )
     }
 else:
     DATABASES = {
@@ -115,6 +116,6 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
 }
 
-WAGTAIL_SITE_NAME = "DIBOS"
-WAGTAILADMIN_BASE_URL = os.getenv("WAGTAILADMIN_BASE_URL", "http://localhost:8000")
-
+WAGTAIL_SITE_NAME = "Kerene's Digital"
+WAGTAILADMIN_BASE_URL = os.getenv(
+    "WAGTAILADMIN_BASE_URL", "http://localhost:8000")

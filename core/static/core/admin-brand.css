@@ -1,10 +1,4 @@
 /* Login brand – Wagtail 7 */
-.w-login__brand {
-  width: 220px;           /* ajuste la largeur */
-  height: 60px;           /* ajuste la hauteur */
-  background: url("/static/core/img/logo-login.svg") center / contain no-repeat;
-}
-
 .login-logo {
   width: 220px;   /* adapte à ton image */
   height: 60px;

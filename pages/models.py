@@ -3,80 +3,67 @@ from wagtail.models import Page
 from wagtail.fields import RichTextField, StreamField
 from wagtail import blocks
 from wagtail.images.blocks import ImageChooserBlock
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel, FieldRowPanel
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PageChooserPanel
+from .blocks import ServicesBlock, CardsBlock, CTABlock
 
-from wagtail.snippets.models import register_snippet
-from wagtail.documents.blocks import DocumentChooserBlock
 
 class HomePage(Page):
-    # Hero
-    hero_title = models.CharField(max_length=255, default="Bienvenue chez DIBOS")
-    hero_video = models.URLField(blank=True, null=True, help_text="Lien vidéo YouTube/Vimeo")
+    # HERO
+    hero_title = models.CharField(max_length=120, blank=True)
+    hero_subtitle = RichTextField(blank=True)
     hero_image = models.ForeignKey(
         "wagtailimages.Image",
-        on_delete=models.SET_NULL,
         null=True, blank=True,
+        on_delete=models.SET_NULL,
         related_name="+"
     )
+    hero_cta_label = models.CharField(max_length=50, blank=True)
+    hero_cta_page = models.ForeignKey(
+        "wagtailcore.Page",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+"
+    )
+    hero_cta_url = models.URLField(blank=True)
 
-    # Trois colonnes Vision / Gouvernance / Historique
-    vision = RichTextField(blank=True)
-    gouvernance = RichTextField(blank=True)
-    historique = RichTextField(blank=True)
-
-    # Filiales (grille 2x2)
-    filiales = StreamField([
-        ("filiale", blocks.StructBlock([
-            ("nom", blocks.CharBlock(required=True)),
-            ("lien", blocks.URLBlock(required=True)),
-            ("image", ImageChooserBlock(required=False)),
-        ]))
-    ], blank=True, use_json_field=True)
-
-    # Actualités (liées aux articles)
-    # actualites = StreamField([
-    #     ("article", blocks.StructBlock([
-    #         ("titre", blocks.CharBlock(required=True)),
-    #         ("resume", blocks.TextBlock(required=True)),
-    #         ("lien", blocks.URLBlock(required=True)),
-    #         ("image", ImageChooserBlock(required=False)),
-    #     ]))
-    # ], blank=True, use_json_field=True)
-
-
-    # Ton StreamField d’actualités devient une liste de pages choisies
-    actualites = StreamField(
+    # SECTIONS DYNAMIQUES
+    body = StreamField(
         [
-            ("actu", blocks.PageChooserBlock(target_model="blog.BlogPage")),
+            ("section_title", blocks.CharBlock(required=False, max_length=120)),
+            ("rich_text", blocks.RichTextBlock()),
+            ("cta", blocks.StructBlock([
+                ("title", blocks.CharBlock(required=False)),
+                ("text", blocks.RichTextBlock(required=False)),
+                ("label", blocks.CharBlock(required=False, max_length=50)),
+                ("page", blocks.PageChooserBlock(required=False)),
+                ("url", blocks.URLBlock(required=False)),
+            ])),
+            ("services", ServicesBlock()),
+            ("cards", CardsBlock()),
+            ("cta", CTABlock()),
         ],
         use_json_field=True,
         blank=True,
     )
 
-    # Bloc Média
-    medias = StreamField([
-        ("media", blocks.StructBlock([
-            ("type", blocks.ChoiceBlock(choices=[("photo","Photo"),("video","Vidéo")])),
-            ("fichier", ImageChooserBlock(required=False)),
-            ("lien_video", blocks.URLBlock(required=False)),
-        ]))
-    ], blank=True, use_json_field=True)
-
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel("hero_title"),
-            FieldPanel("hero_video"),
+            FieldPanel("hero_subtitle"),
             FieldPanel("hero_image"),
-        ], heading="Hero"),
-        MultiFieldPanel([
-            FieldPanel("vision"),
-            FieldPanel("gouvernance"),
-            FieldPanel("historique"),
-        ], heading="Vision | Gouvernance | Historique"),
-        FieldPanel("filiales"),
-        FieldPanel("actualites"),
-        FieldPanel("medias"),
+            FieldPanel("hero_cta_label"),
+            PageChooserPanel("hero_cta_page"),
+            FieldPanel("hero_cta_url"),
+        ], heading="Bannière (Hero)"),
+        FieldPanel("body"),
     ]
+
+    parent_page_types = ["wagtailcore.Page"]  # ou une RootPage personnalisée
+    subpage_types = ["pages.StandardPage",
+                     "blog.BlogIndexPage",
+                     "blog.BlogPage",
+                     "contact.ContactFormPage"]  # adapte à ton projet
+    template = "pages/home_page.html"
 
 
 class StandardPage(Page):
@@ -84,7 +71,8 @@ class StandardPage(Page):
     intro = RichTextField(blank=True)
     body = StreamField(
         [
-            ("paragraphe", blocks.RichTextBlock(features=["h2","bold","italic","link","ol","ul"])),
+            ("paragraphe", blocks.RichTextBlock(features=[
+             "h2", "bold", "italic", "link", "ol", "ul"])),
             ("image", ImageChooserBlock()),
         ],
         use_json_field=True,
@@ -95,4 +83,3 @@ class StandardPage(Page):
         FieldPanel("intro"),
         FieldPanel("body"),
     ]
-

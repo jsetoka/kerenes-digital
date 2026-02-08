@@ -1,0 +1,32 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section class="my-5">
+  {% if value.heading %}
+    <h2 class="mb-3">{{ value.heading }}</h2>
+  {% endif %}
+
+  {% if value.intro %}
+    <div class="mb-4">{{ value.intro|richtext }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    {% for card in value.items %}
+      <div class="col-md-4">
+        <div class="p-4 border rounded h-100">
+          {% if card.image %}
+            {% image card.image fill-300x200 class="img-fluid mb-2" %}
+          {% endif %}
+          <h3 class="h5">{{ card.title }}</h3>
+          {% if card.description %}
+            <p>{{ card.description }}</p>
+          {% endif %}
+          {% if card.link_page %}
+            <a href="{{ card.link_page.url }}">En savoir plus →</a>
+          {% elif card.link_url %}
+            <a href="{{ card.link_url }}" target="_blank" rel="noopener">En savoir plus →</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>

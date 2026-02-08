@@ -15,5 +15,6 @@
   "prettier.disableLanguages": ["django-html", "html"],
 
   // Option: utiliser djLint (connaît Django) si tu veux un formateur adapté
-  "editor.defaultFormatter": null
+  "editor.defaultFormatter": null,
+  "djlint.showInstallError": false
 }

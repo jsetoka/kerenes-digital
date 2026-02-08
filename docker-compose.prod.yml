@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: kerenes
+      POSTGRES_USER: kerenes
+      POSTGRES_PASSWORD: kerenes
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+##      DATABASE_URL: postgres://kerenes:kerenes@db:5432/kerenes
+    volumes:
+      - media:/app/media
+      - staticfiles:/app/staticfiles
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - media:/app/media:ro
+      - staticfiles:/app/staticfiles:ro
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  media:
+  staticfiles:

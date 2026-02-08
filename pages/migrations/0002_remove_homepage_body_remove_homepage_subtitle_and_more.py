@@ -24,12 +24,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homepage',
             name='actualites',
-            field=wagtail.fields.StreamField([('article', 4)], blank=True, block_lookup={0: ('wagtail.blocks.CharBlock', (), {'required': True}), 1: ('wagtail.blocks.TextBlock', (), {'required': True}), 2: ('wagtail.blocks.URLBlock', (), {'required': True}), 3: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 4: ('wagtail.blocks.StructBlock', [[('titre', 0), ('resume', 1), ('lien', 2), ('image', 3)]], {})}),
+            field=wagtail.fields.StreamField([('article', 4)], blank=True, block_lookup={0: ('wagtail.blocks.CharBlock', (), {'required': True}), 1: ('wagtail.blocks.TextBlock', (), {'required': True}), 2: ('wagtail.blocks.URLBlock', (), {
+                                             'required': True}), 3: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 4: ('wagtail.blocks.StructBlock', [[('titre', 0), ('resume', 1), ('lien', 2), ('image', 3)]], {})}),
         ),
         migrations.AddField(
             model_name='homepage',
-            name='filiales',
-            field=wagtail.fields.StreamField([('filiale', 3)], blank=True, block_lookup={0: ('wagtail.blocks.CharBlock', (), {'required': True}), 1: ('wagtail.blocks.URLBlock', (), {'required': True}), 2: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 3: ('wagtail.blocks.StructBlock', [[('nom', 0), ('lien', 1), ('image', 2)]], {})}),
+            name='services',
+            field=wagtail.fields.StreamField([('service', 3)], blank=True, block_lookup={0: ('wagtail.blocks.CharBlock', (), {'required': True}), 1: ('wagtail.blocks.URLBlock', (), {
+                                             'required': True}), 2: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 3: ('wagtail.blocks.StructBlock', [[('nom', 0), ('lien', 1), ('image', 2)]], {})}),
         ),
         migrations.AddField(
             model_name='homepage',
@@ -39,17 +41,20 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homepage',
             name='hero_image',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailimages.image'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtailimages.image'),
         ),
         migrations.AddField(
             model_name='homepage',
             name='hero_title',
-            field=models.CharField(default='Bienvenue chez DIBOS', max_length=255),
+            field=models.CharField(
+                default='Bienvenue chez DIBOS', max_length=255),
         ),
         migrations.AddField(
             model_name='homepage',
             name='hero_video',
-            field=models.URLField(blank=True, help_text='Lien vidéo YouTube/Vimeo', null=True),
+            field=models.URLField(
+                blank=True, help_text='Lien vidéo YouTube/Vimeo', null=True),
         ),
         migrations.AddField(
             model_name='homepage',
@@ -59,7 +64,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homepage',
             name='medias',
-            field=wagtail.fields.StreamField([('media', 3)], blank=True, block_lookup={0: ('wagtail.blocks.ChoiceBlock', [], {'choices': [('photo', 'Photo'), ('video', 'Vidéo')]}), 1: ('wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 2: ('wagtail.blocks.URLBlock', (), {'required': False}), 3: ('wagtail.blocks.StructBlock', [[('type', 0), ('fichier', 1), ('lien_video', 2)]], {})}),
+            field=wagtail.fields.StreamField([('media', 3)], blank=True, block_lookup={0: ('wagtail.blocks.ChoiceBlock', [], {'choices': [('photo', 'Photo'), ('video', 'Vidéo')]}), 1: (
+                'wagtail.images.blocks.ImageChooserBlock', (), {'required': False}), 2: ('wagtail.blocks.URLBlock', (), {'required': False}), 3: ('wagtail.blocks.StructBlock', [[('type', 0), ('fichier', 1), ('lien_video', 2)]], {})}),
         ),
         migrations.AddField(
             model_name='homepage',
