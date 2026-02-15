@@ -1,18 +1,34 @@
 from pathlib import Path
 import os
-import dj_database_url
 from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parent.parent  # IMPORTANT
 load_dotenv(BASE_DIR / ".env")
+
+ENV = os.getenv("ENV", "dev")
+USE_HTTPS = os.getenv("USE_HTTPS", "False") == "True"
 
 SECRET_KEY = os.getenv("SECRET_KEY", "insecure-dev-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
+
 ALLOWED_HOSTS = [h.strip() for h in os.getenv(
-    "ALLOWED_HOSTS", "").split(",") if h.strip()]
+    "DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+if ENV == "dev" and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+if ENV != "dev" and USE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
 
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS if o.strip()]
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "fr")
 TIME_ZONE = os.getenv("TIME_ZONE", "Africa/Brazzaville")
@@ -104,10 +120,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+# STATICFILES_DIRS = []  # ou crée BASE_DIR/static
+
 
 # Whitenoise
 STORAGES = {
