@@ -2,11 +2,13 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: kerenes
-      POSTGRES_USER: kerenes
-      POSTGRES_PASSWORD: kerenes
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   web:
     build: .
