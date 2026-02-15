@@ -31,6 +31,7 @@ services:
     restart: unless-stopped
     ports:
       - "8000:80"
+      - "443:443" 
     volumes:
       - media:/app/media:ro
       - staticfiles:/app/staticfiles:ro

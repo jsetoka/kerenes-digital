@@ -11,6 +11,9 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [h.strip() for h in os.getenv(
     "ALLOWED_HOSTS", "").split(",") if h.strip()]
 
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+
+
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "fr")
 TIME_ZONE = os.getenv("TIME_ZONE", "Africa/Brazzaville")
 USE_I18N = True
