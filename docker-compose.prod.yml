@@ -22,6 +22,19 @@ services:
       - staticfiles:/app/staticfiles
     depends_on:
       - db
+    labels:
+      - traefik.enable=true
+
+      # Route HTTPS vers ton domaine (remplace par TON domaine)
+      - traefik.http.routers.kd.rule=Host(`example.com`) || Host(`www.example.com`)
+      - traefik.http.routers.kd.entrypoints=websecure
+      - traefik.http.routers.kd.tls=true
+      - traefik.http.routers.kd.tls.certresolver=le
+
+      # Service
+      - traefik.http.services.kd.loadbalancer.server.port=8000
+    restart: unless-stopped
+
 
   nginx:
     build:
@@ -30,13 +43,42 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443" 
     volumes:
       - media:/app/media:ro
       - staticfiles:/app/staticfiles:ro
     depends_on: [web]
 #   networks: [appnet]
 
+  traefik:
+    image: traefik:v3.1
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      # Let's Encrypt (HTTP-01)
+      - --certificatesresolvers.le.acme.email=contact@kerenes-digital.com
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
+      # (optionnel) redirection HTTP -> HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    restart: unless-stopped
+
 volumes:
   pgdata:
   media:
   staticfiles:
+  letsencrypt:
