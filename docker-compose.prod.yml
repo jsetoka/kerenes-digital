@@ -14,9 +14,10 @@ services:
     build: .
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.prod
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
 ##      DATABASE_URL: postgres://kerenes:kerenes@db:5432/kerenes
     volumes:
+      - .:/app
       - media:/app/media
       - staticfiles:/app/staticfiles
     depends_on:
@@ -33,7 +34,7 @@ services:
       - media:/app/media:ro
       - staticfiles:/app/staticfiles:ro
     depends_on: [web]
-    networks: [appnet]
+#   networks: [appnet]
 
 volumes:
   pgdata:

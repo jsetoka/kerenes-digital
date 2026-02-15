@@ -12,20 +12,32 @@ services:
 
   web:
     build: .
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+#    command: python manage.py runserver 0.0.0.0:8000
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+##      DATABASE_URL: postgres://kerenes:kerenes@db:5432/kerenes
     volumes:
       - .:/app
       - media:/app/media
-      - static:/app/staticfiles
-    ports:
-      - "8000:8000"
+      - staticfiles:/app/staticfiles
     depends_on:
       - db
-    command: python manage.py runserver 0.0.0.0:8000
 
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - media:/app/media:ro
+      - staticfiles:/app/staticfiles:ro
+    depends_on: [web]
+#   networks: [appnet]
 
 volumes:
   pgdata:
   media:
-  static:
+  staticfiles:
