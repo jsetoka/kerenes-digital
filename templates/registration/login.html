@@ -10,6 +10,11 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    {% if next and "/admin" not in next %}
+      <input type="hidden" name="next" value="{{ next }}">
+    {% endif %}
     <button type="submit">Se connecter</button>
   </form>
+  <a href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+
 {% endblock %}

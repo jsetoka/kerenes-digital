@@ -44,6 +44,20 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.example.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", "Kerene's Digital <no-reply@kerenes-digital.com>")
+
+SITE_URL = os.getenv("SITE_URL", "https://kerenes-digital.com")
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
 WAGTAILDOCS_DOCUMENT_MODEL = "documents.CustomDocument"
 
 INSTALLED_APPS = [

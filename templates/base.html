@@ -1,5 +1,5 @@
-
 {% load static wagtailcore_tags wagtailuserbar %}
+
 <!DOCTYPE html>
 <html lang="fr">
   <head>
@@ -17,113 +17,164 @@
   <body class="d-flex flex-column min-vh-100 bg-perso">
     {% wagtailuserbar %}
 
-     
-     <header class="d-flex justify-content-between align-items-center p-3 bg-navy">
-
-      <a class="navbar-brand d-flex align-items-center" href="/">
-        <img src="{% static 'images/logo-kerasgo.png' %}" alt="Kerene's Digital" height="50" class="me-2">
-        <span class="fw-bold text-light">Kerene's Digital</span>
-      </a>
-    
-      {% load wagtailcore_tags %}
-      <nav class="navbar navbar-dark bg-navy w-100">
+    <header class="bg-navy">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-navy">
         <div class="container-fluid">
-    
-          <!-- Menu DESKTOP (visible ≥ lg) -->
-          <div class="d-none d-lg-flex ms-auto">
-            <ul class="navbar-nav flex-row align-items-center">
-              {% for item in main_menu_items %}
-                {% if item.link_page and item.link_page.live %}
-                  <li class="nav-item">
-                    <a class="nav-link px-3" href="{% pageurl item.link_page %}">{{ item.title }}</a>
-                  </li>
-                {% elif item.link_url %}
-                  <li class="nav-item">
-                    <a class="nav-link px-3" href="{{ item.link_url }}">{{ item.title }}</a>
-                  </li>
-                {% endif %}
-              {% endfor %}
 
-              <!-- 🔐 Zone utilisateur -->
-              {% if user.is_authenticated %}
-                <li class="nav-item">
-                  <form method="post" action="/accounts/logout/" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item text-danger">
-                      <i class="bi bi-box-arrow-right me-2"></i>Déconnexion ({{ user.username }})
-                    </button>
-                  </form>
-                </li>
-              {% else %}
-                <li class="nav-item">
-                  <a class="nav-link px-3 text-info" href="/accounts/login/">
-                    Connexion
-                  </a>
-                </li>
-              {% endif %}
-            </ul>
+          <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="{% static 'images/logo-kerasgo.png' %}" alt="Kerene's Digital" height="50" class="me-2">
+            <span class="fw-bold text-light">Kerene's Digital</span>
+          </a>
 
-          </div>
-    
-          <!-- Bouton HAMBURGER (visible < lg) -->
-          <button class="navbar-toggler d-lg-none ms-auto" type="button"
+          <!-- Bouton HAMBURGER -->
+          <button class="navbar-toggler ms-auto" type="button"
                   data-bs-toggle="offcanvas" data-bs-target="#mainOffcanvas"
                   aria-controls="mainOffcanvas" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>
           </button>
-    
-          <!-- Menu OFFCANVAS (visible < lg) -->
+
+          <!-- MENU DESKTOP (>= lg) -->
+          <div class="collapse navbar-collapse d-none d-lg-flex">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+
+              {# MENU DYNAMIQUE #}
+              {% for item in main_menu_items %}
+                {% if not item.requires_login or user.is_authenticated %}
+                  {% with children=item.children.all %}
+                    {% if item.show_children and children %}
+                      <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3" href="#"
+                           role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                          {{ item.title }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          {% for child in children %}
+                            <li>
+                              <a class="dropdown-item" href="{{ child.url|default:'#' }}">
+                                {{ child.title }}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </li>
+                    {% else %}
+                      <li class="nav-item">
+                        <a class="nav-link px-3" href="{{ item.url|default:'#' }}">
+                          {{ item.title }}
+                        </a>
+                      </li>
+                    {% endif %}
+                  {% endwith %}
+                {% endif %}
+              {% endfor %}
+
+              {# 🔐 ZONE AUTH (Django 5: logout en POST) #}
+              {% if user.is_authenticated %}
+                <li class="nav-item ms-lg-3">
+                  <span class="navbar-text text-light small me-2">
+                    👤 {{ user.username }}
+                  </span>
+                </li>
+                <li class="nav-item">
+                  <form method="post" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                      Déconnexion
+                    </button>
+                  </form>
+                </li>
+              {% else %}
+                <li class="nav-item ms-lg-3">
+                  <a class="btn btn-sm btn-outline-info" href="{% url 'login' %}">
+                    Connexion
+                  </a>
+                </li>
+              {% endif %}
+
+            </ul>
+          </div>
+
+          <!-- OFFCANVAS MOBILE (< lg) -->
           <div class="offcanvas offcanvas-start text-bg-dark d-lg-none"
                tabindex="-1" id="mainOffcanvas" aria-labelledby="mainOffcanvasLabel">
             <div class="offcanvas-header">
               <h5 class="offcanvas-title" id="mainOffcanvasLabel">Menu</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+              <button type="button" class="btn-close btn-close-white"
+                      data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
             </div>
+
             <div class="offcanvas-body">
               <ul class="navbar-nav">
+
+                {# MENU DYNAMIQUE #}
                 {% for item in main_menu_items %}
-                  {% if item.link_page and item.link_page.live %}
-                    <li class="nav-item">
-                      <a class="nav-link" href="{% pageurl item.link_page %}">{{ item.title }}</a>
-                    </li>
-                  {% elif item.link_url %}
-                    <li class="nav-item">
-                      <a class="nav-link" href="{{ item.link_url }}">{{ item.title }}</a>
-                    </li>
+                  {% if not item.requires_login or user.is_authenticated %}
+                    {% with children=item.children.all %}
+                      {% if item.show_children and children %}
+                        <li class="nav-item">
+                          <div class="fw-semibold mt-2 mb-1">{{ item.title }}</div>
+                          <ul class="list-unstyled ps-2">
+                            {% for child in children %}
+                              <li class="mb-1">
+                                <a class="nav-link py-1" href="{{ child.url|default:'#' }}">
+                                  {{ child.title }}
+                                </a>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </li>
+                      {% else %}
+                        <li class="nav-item">
+                          <a class="nav-link" href="{{ item.url|default:'#' }}">{{ item.title }}</a>
+                        </li>
+                      {% endif %}
+                    {% endwith %}
                   {% endif %}
                 {% endfor %}
 
-                <hr>
+                <hr class="my-3">
 
+                {# 🔐 ZONE AUTH MOBILE #}
                 {% if user.is_authenticated %}
+                  <li class="nav-item mb-2 text-light">
+                    Connecté : <strong>{{ user.username }}</strong>
+                  </li>
                   <li class="nav-item">
-                    <a class="nav-link text-warning" href="/accounts/logout/">
-                      Déconnexion ({{ user.username }})
-                    </a>
+                    <form method="post" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button type="submit"
+                              class="nav-link text-danger bg-transparent border-0 text-start w-100">
+                        Déconnexion
+                      </button>
+                    </form>
                   </li>
                 {% else %}
                   <li class="nav-item">
-                    <a class="nav-link text-info" href="/accounts/login/">
+                    <a class="nav-link text-info" href="{% url 'login' %}">
                       Connexion
                     </a>
                   </li>
                 {% endif %}
-              </ul>
 
+              </ul>
             </div>
           </div>
-    
+
         </div>
       </nav>
     </header>
-    <main class="container ">
-          <div class="row justify-content-center">
-            <div class="col-12 col-lg-12 col-xl-10">  <!-- ≈ 10/12 ou 8/12 de la largeur -->
-            {% block content %}{% endblock %}
-            </div>
+
+    <main class="container my-3">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-12 col-xl-10">
+          {% block content %}{% endblock %}
         </div>
+      </div>
     </main>
+
     {% include "components/footer.html" %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
