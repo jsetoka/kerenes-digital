@@ -1,67 +1,89 @@
 # library/models.py
+from collections import defaultdict
 from django.db.models import Q
-from wagtail.documents import get_document_model
 from wagtail.models import Page
-from django.db import models
 from wagtail.admin.panels import FieldPanel
+from wagtail.documents import get_document_model
+from wagtail.models import Collection
+from django.db import models
 
 
 class DocumentLibraryPage(Page):
     intro = models.TextField(blank=True)
 
-    content_panels = Page.content_panels + [
-        FieldPanel("intro"),
-    ]
-
+    content_panels = Page.content_panels + [FieldPanel("intro")]
     template = "library/document_library_page.html"
 
-    def get_documents_queryset(self, request):
+    def _filtered_docs(self, request):
         Doc = get_document_model()
-        qs = Doc.objects.all().order_by("-created_at")
+        qs = Doc.objects.select_related("collection").all().order_by("title")
 
-        # Appliquer permissions
         user = request.user
         if not user.is_authenticated:
             return qs.none()
 
-        # confidentiel => staff seulement
+        # confidential => staff only
         if not user.is_staff:
             qs = qs.filter(Q(confidential=False) |
                            Q(confidential__isnull=True))
 
-        # allowed_groups vide => accessible à tous users connectés
-        # allowed_groups non vide => user doit être dans un groupe autorisé
+        # groups
         user_group_ids = user.groups.values_list("id", flat=True)
         qs = qs.filter(
             Q(allowed_groups__isnull=True) | Q(
                 allowed_groups__in=user_group_ids)
         ).distinct()
 
-        # Recherche
+        # search
         q = request.GET.get("q", "").strip()
         if q:
-            qs = qs.filter(
-                Q(title__icontains=q) |
-                Q(reference__icontains=q)
-            )
-
-        # Filtre type (si tu veux)
-        doc_type = request.GET.get("type", "").strip()
-        if doc_type:
-            qs = qs.filter(doc_type=doc_type)
+            qs = qs.filter(Q(title__icontains=q) | Q(reference__icontains=q))
 
         return qs
 
-    def serve(self, request, *args, **kwargs):
-        # Option: obliger login pour voir la bibliothèque
-        if not request.user.is_authenticated:
-            from django.contrib.auth.views import redirect_to_login
-            return redirect_to_login(request.get_full_path())
-        return super().serve(request, *args, **kwargs)
+    def _build_collection_tree(self, docs_qs):
+        """
+        Structure:
+        roots = [ {collection, children:[...], documents:[...]} ... ]
+        Basé sur treebeard (Collection est un MP_Node).
+        """
+
+        # docs par collection
+        docs_by_collection = defaultdict(list)
+        for d in docs_qs:
+            docs_by_collection[d.collection_id].append(d)
+
+        def build_node(collection: Collection):
+            children_nodes = []
+            for child in collection.get_children():
+                node = build_node(child)
+                if node:
+                    children_nodes.append(node)
+
+            node_docs = docs_by_collection.get(collection.id, [])
+
+            # ignorer les noeuds vides
+            if not node_docs and not children_nodes:
+                return None
+
+            return {
+                "collection": collection,
+                "documents": node_docs,
+                "children": children_nodes,
+            }
+
+        roots = []
+        for root in Collection.get_root_nodes():
+            node = build_node(root)
+            if node:
+                roots.append(node)
+
+        return roots
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request)
-        context["documents"] = self.get_documents_queryset(request)
+        docs = self._filtered_docs(request)
         context["q"] = request.GET.get("q", "").strip()
-        context["doc_type"] = request.GET.get("type", "").strip()
+        context["collection_tree"] = self._build_collection_tree(docs)
+        context["documents_count"] = docs.count()
         return context
