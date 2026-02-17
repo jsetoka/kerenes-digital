@@ -59,15 +59,18 @@ class HomePage(Page):
     ]
 
     parent_page_types = ["wagtailcore.Page"]  # ou une RootPage personnalisée
-    subpage_types = ["pages.StandardPage",
-                     "blog.BlogIndexPage",
-                     "blog.BlogPage",
-                     "contact.ContactFormPage"]  # adapte à ton projet
+    subpage_types = [
+        "pages.StandardPage",
+        "blog.BlogIndexPage",
+        "blog.BlogPage",
+        "contact.ContactFormPage",
+        "library.DocumentLibraryPage",  # ✅ AJOUTE ÇA
+    ]
     template = "pages/home_page.html"
 
 
 class StandardPage(Page):
-    Template = "pages/standard_page.html"
+    template = "pages/standard_page.html"
     intro = RichTextField(blank=True)
     body = StreamField(
         [

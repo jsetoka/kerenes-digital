@@ -31,7 +31,7 @@
     
           <!-- Menu DESKTOP (visible ≥ lg) -->
           <div class="d-none d-lg-flex ms-auto">
-            <ul class="navbar-nav flex-row align-items-center">
+            <ul class="navbar-nav flex-row">
               {% for item in main_menu_items %}
                 {% if item.link_page and item.link_page.live %}
                   <li class="nav-item">
@@ -43,26 +43,7 @@
                   </li>
                 {% endif %}
               {% endfor %}
-
-              <!-- 🔐 Zone utilisateur -->
-              {% if user.is_authenticated %}
-                <li class="nav-item">
-                  <form method="post" action="/accounts/logout/" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item text-danger">
-                      <i class="bi bi-box-arrow-right me-2"></i>Déconnexion ({{ user.username }})
-                    </button>
-                  </form>
-                </li>
-              {% else %}
-                <li class="nav-item">
-                  <a class="nav-link px-3 text-info" href="/accounts/login/">
-                    Connexion
-                  </a>
-                </li>
-              {% endif %}
             </ul>
-
           </div>
     
           <!-- Bouton HAMBURGER (visible < lg) -->
@@ -92,24 +73,7 @@
                     </li>
                   {% endif %}
                 {% endfor %}
-
-                <hr>
-
-                {% if user.is_authenticated %}
-                  <li class="nav-item">
-                    <a class="nav-link text-warning" href="/accounts/logout/">
-                      Déconnexion ({{ user.username }})
-                    </a>
-                  </li>
-                {% else %}
-                  <li class="nav-item">
-                    <a class="nav-link text-info" href="/accounts/login/">
-                      Connexion
-                    </a>
-                  </li>
-                {% endif %}
               </ul>
-
             </div>
           </div>
     

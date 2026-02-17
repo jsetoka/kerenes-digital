@@ -27,13 +27,24 @@ else:
     SECURE_SSL_REDIRECT = False
     SECURE_HSTS_SECONDS = 0
 
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in CSRF_TRUSTED_ORIGINS if o.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    x.strip()
+    for x in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if x.strip()
+]
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "fr")
 TIME_ZONE = os.getenv("TIME_ZONE", "Africa/Brazzaville")
 USE_I18N = True
 USE_TZ = True
+
+# Auth front
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+
+WAGTAILDOCS_DOCUMENT_MODEL = "documents.CustomDocument"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -46,6 +57,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.settings",
+    "django.contrib.humanize",
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",
@@ -64,6 +76,8 @@ INSTALLED_APPS = [
     "contact",
     "footer",
     "widget_tweaks",
+    "documents",
+    "library",
 ]
 
 MIDDLEWARE = [
