@@ -31,7 +31,8 @@ class HomePage(Page):
         [
             ("section_title", blocks.CharBlock(required=False, max_length=120)),
             ("rich_text", blocks.RichTextBlock()),
-            ("cta", blocks.StructBlock([
+            # ⚠️ Renommé pour éviter le doublon "cta"
+            ("cta_simple", blocks.StructBlock([
                 ("title", blocks.CharBlock(required=False)),
                 ("text", blocks.RichTextBlock(required=False)),
                 ("label", blocks.CharBlock(required=False, max_length=50)),
@@ -58,14 +59,16 @@ class HomePage(Page):
         FieldPanel("body"),
     ]
 
-    parent_page_types = ["wagtailcore.Page"]  # ou une RootPage personnalisée
+    parent_page_types = ["wagtailcore.Page"]
     subpage_types = [
         "pages.StandardPage",
+        "pages.FormationsIndexPage",          # ✅ AJOUT ICI (catalogue)
         "blog.BlogIndexPage",
         "blog.BlogPage",
         "contact.ContactFormPage",
-        "library.DocumentLibraryPage",  # ✅ AJOUTE ÇA
+        "library.DocumentLibraryPage",
     ]
+
     template = "pages/home_page.html"
 
 
@@ -85,4 +88,93 @@ class StandardPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
         FieldPanel("body"),
+    ]
+
+
+class FormationsIndexPage(Page):
+    template = "pages/formations_index_page.html"  # ✅ recommandé
+    intro = models.TextField(blank=True)
+
+    parent_page_types = ["pages.HomePage", "wagtailcore.Page"]  # ✅ au choix
+    # ✅ seulement les formations dedans
+    subpage_types = ["pages.FormationPage"]
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context["formations"] = (
+            self.get_children()
+            .live()
+            .public()
+            .specific()
+        )
+        return context
+
+
+class FormationPage(Page):
+    template = "pages/formation_page.html"  # ✅ tu l'as déjà
+
+    parent_page_types = ["pages.FormationsIndexPage"]  # ✅ IMPORTANT
+    subpage_types = []  # ✅ pas d'enfants
+
+    duree = models.CharField(max_length=50)
+    public_cible = models.CharField(max_length=255)
+
+    objectif = RichTextField(blank=True)
+    programme = RichTextField(blank=True)
+
+    niveau = models.CharField(
+        max_length=50,
+        choices=[
+            ("decouverte", "Découverte"),
+            ("pratique", "Pratique"),
+            ("technique", "Technique"),
+            ("expert", "Expert"),
+        ]
+    )
+
+    modalite = models.CharField(
+        max_length=50,
+        choices=[
+            ("presentiel", "Présentiel"),
+            ("distanciel", "Distanciel"),
+            ("hybride", "Hybride"),
+        ],
+        default="presentiel"
+    )
+
+    # ✅ CTA
+    cta_label = models.CharField(
+        max_length=80,
+        blank=True,
+        default="Demander cette formation"
+    )
+    cta_page = models.ForeignKey(
+        "wagtailcore.Page",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+"
+    )
+    cta_url = models.URLField(blank=True)
+
+    content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel("niveau"),
+            FieldPanel("duree"),
+            FieldPanel("public_cible"),
+            FieldPanel("modalite"),
+        ], heading="Informations générales"),
+
+        FieldPanel("objectif"),
+        FieldPanel("programme"),
+
+        # ✅ Panneau CTA
+        MultiFieldPanel([
+            FieldPanel("cta_label"),
+            PageChooserPanel("cta_page"),
+            FieldPanel("cta_url"),
+        ], heading="Bouton d’appel à l’action (CTA)"),
     ]

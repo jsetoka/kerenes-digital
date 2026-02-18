@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+
+<section class="container py-5">
+
+    <h1 class="fw-bold">{{ page.title }}</h1>
+
+    <div class="badge bg-primary">{{ page.niveau }}</div>
+    <div class="badge bg-dark">{{ page.duree }}</div>
+    <div class="badge bg-success">{{ page.modalite }}</div>
+
+    <hr>
+
+    <h3>Objectifs</h3>
+    <div class="lead">
+        {{ page.objectif|richtext }}
+    </div>
+
+    <h3 class="mt-4">Programme</h3>
+    <div>
+        {{ page.programme|richtext }}
+    </div>
+
+    {% if page.cta_label %}
+    <div class="mt-5 text-center">
+        {% if page.cta_page %}
+        <a class="btn btn-primary btn-lg" href="{{ page.cta_page.url }}">
+            {{ page.cta_label }}
+        </a>
+        {% elif page.cta_url %}
+        <a class="btn btn-primary btn-lg" href="{{ page.cta_url }}" target="_blank" rel="noopener">
+            {{ page.cta_label }}
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+
+</section>
+
+{% endblock %}

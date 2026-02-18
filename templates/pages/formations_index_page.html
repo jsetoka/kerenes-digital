@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+
+<section class="container py-5">
+
+<h1>{{ page.title }}</h1>
+<p class="lead">{{ page.intro }}</p>
+
+<div class="row">
+{% for formation in formations %}
+  <div class="col-md-4 mb-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ formation.title }}</h5>
+        <p class="text-muted">
+            {{ formation.specific.duree }} • {{ formation.specific.niveau }}
+        </p>
+        <a href="{{ formation.url }}" class="btn btn-outline-primary">
+          Voir la formation
+        </a>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+</section>
+
+{% endblock %}
