@@ -34,6 +34,40 @@
             </div>
           </div>
 
+            {# ✅ TARIFS (dans la carte de droite, avant le bouton CTA) #}
+          <div class="mb-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fs-5">💳</span>
+                <div class="fw-semibold">Tarifs</div>
+            </div>
+
+            <div class="row g-2">
+                <div class="col-6">
+                <div class="p-2 bg-light rounded text-center">
+                    <div class="small text-muted">Particulier</div>
+                    <div class="fw-bold">
+                    {{ page.prix_individuel|default:"Nous consulter" }}
+                    </div>
+                </div>
+                </div>
+                <div class="col-6">
+                <div class="p-2 bg-dark text-white rounded text-center">
+                    <div class="small">Entreprise</div>
+                    <div class="fw-bold">
+                    {{ page.prix_entreprise|default:"Sur devis" }}
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            {% if page.inclus %}
+                <div class="small text-muted mt-2">
+                {{ page.inclus|richtext }}
+                </div>
+            {% endif %}
+          </div>
+
+
           {% if page.cta_label %}
             {% if page.cta_page %}
               <a class="btn btn-primary btn-lg w-100"
@@ -88,6 +122,44 @@
           </div>
         </div>
       </div>
+
+
+
+        {# ✅ SECTION TARIFS (dans le contenu) #}
+      {% if page.prix_individuel or page.prix_entreprise %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 p-md-5">
+            <h2 class="h4 fw-bold mb-3">Tarifs</h2>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                <div class="p-3 bg-light rounded text-center">
+                    <div class="text-muted small">Particulier</div>
+                    <div class="display-6 fw-bold">
+                    {{ page.prix_individuel|default:"Nous consulter" }}
+                    </div>
+                </div>
+                </div>
+                <div class="col-md-6">
+                <div class="p-3 bg-dark text-white rounded text-center">
+                    <div class="small">Entreprise</div>
+                    <div class="display-6 fw-bold">
+                    {{ page.prix_entreprise|default:"Sur devis" }}
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            {% if page.inclus %}
+                <hr class="my-4">
+                <div class="text-muted">
+                {{ page.inclus|richtext }}
+                </div>
+            {% endif %}
+            </div>
+        </div>
+      {% endif %}
+
 
       {% if page.prerequis %}
         <div class="card border-0 shadow-sm mb-4">

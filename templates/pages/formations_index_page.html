@@ -5,26 +5,69 @@
 
 <section class="container py-5">
 
-<h1>{{ page.title }}</h1>
-<p class="lead">{{ page.intro }}</p>
+  <h1 class="fw-bold">{{ page.title }}</h1>
+  {% if page.intro %}
+    <p class="lead">{{ page.intro }}</p>
+  {% endif %}
 
-<div class="row">
-{% for formation in formations %}
-  <div class="col-md-4 mb-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">{{ formation.title }}</h5>
-        <p class="text-muted">
-            {{ formation.specific.duree }} • {{ formation.specific.niveau }}
-        </p>
-        <a href="{{ formation.url }}" class="btn btn-outline-primary">
-          Voir la formation
-        </a>
+  <div class="row g-4">
+    {% for formation in formations %}
+      {% with f=formation.specific %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body d-flex flex-column">
+
+              <h5 class="card-title fw-bold mb-2">{{ f.title }}</h5>
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge text-bg-dark">{{ f.duree }}</span>
+
+                <span class="badge text-bg-primary">
+                  {{ f.get_niveau_display }}
+                </span>
+
+                <span class="badge text-bg-success">
+                  {{ f.get_modalite_display }}
+                </span>
+              </div>
+
+              {# ✅ TARIFS (liste) #}
+              <div class="mb-3">
+                {% if f.prix_individuel %}
+                  <div class="fw-semibold text-primary">
+                    À partir de {{ f.prix_individuel }}
+                  </div>
+                {% else %}
+                  <div class="text-muted">Tarif : nous consulter</div>
+                {% endif %}
+
+                <div class="small text-muted">
+                  Entreprise :
+                  {% if f.prix_entreprise %}
+                    {{ f.prix_entreprise }}
+                  {% else %}
+                    Sur devis
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="mt-auto">
+                <a href="{{ formation.url }}" class="btn btn-outline-primary w-100">
+                  Voir la formation
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endwith %}
+    {% empty %}
+      <div class="col-12">
+        <div class="alert alert-light border">
+          Aucune formation disponible pour le moment.
+        </div>
       </div>
-    </div>
+    {% endfor %}
   </div>
-{% endfor %}
-</div>
 
 </section>
 

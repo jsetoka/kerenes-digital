@@ -162,6 +162,24 @@ class FormationPage(Page):
         default="presentiel"
     )
 
+    # ✅ TARIFS
+    prix_individuel = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Ex: 150 000 FCFA"
+    )
+
+    prix_entreprise = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Ex: 2 200 000 FCFA ou Sur devis"
+    )
+
+    inclus = RichTextField(
+        blank=True,
+        help_text="Optionnel : ce qui est inclus (supports, attestation, coaching, etc.)"
+    )
+
     # ✅ CTA
     cta_label = models.CharField(
         max_length=80,
@@ -183,6 +201,13 @@ class FormationPage(Page):
             FieldPanel("public_cible"),
             FieldPanel("modalite"),
         ], heading="Informations générales"),
+
+        MultiFieldPanel([
+            FieldPanel("prix_individuel"),
+            FieldPanel("prix_entreprise"),
+            FieldPanel("inclus"),
+        ], heading="Tarification"),
+
 
         FieldPanel("objectif"),
         FieldPanel("prerequis"),
