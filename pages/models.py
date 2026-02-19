@@ -66,6 +66,7 @@ class HomePage(Page):
         "blog.BlogIndexPage",
         "blog.BlogPage",
         "contact.ContactFormPage",
+        "contact.DemandeFormationPage",
         "library.DocumentLibraryPage",
     ]
 

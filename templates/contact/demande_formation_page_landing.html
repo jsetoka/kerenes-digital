@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<section class="container py-5 text-center">
+  <h1 class="fw-bold">Merci !</h1>
+
+  {% if page.thank_you_text %}
+    <div class="lead mt-3">{{ page.thank_you_text|richtext }}</div>
+  {% else %}
+    <p class="lead mt-3">
+      Votre demande de formation a bien été envoyée. Nous vous recontactons rapidement.
+    </p>
+  {% endif %}
+
+  <a href="/" class="btn btn-outline-primary mt-4">Retour à l’accueil</a>
+</section>
+{% endblock %}

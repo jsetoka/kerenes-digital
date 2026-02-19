@@ -26,7 +26,8 @@
     {% if page.cta_label %}
     <div class="mt-5 text-center">
         {% if page.cta_page %}
-        <a class="btn btn-primary btn-lg" href="{{ page.cta_page.url }}">
+        <a class="btn btn-primary btn-lg"
+            href="{{ page.cta_page.url }}?formation_id={{ page.id }}&formation_title={{ page.title|urlencode }}">
             {{ page.cta_label }}
         </a>
         {% elif page.cta_url %}

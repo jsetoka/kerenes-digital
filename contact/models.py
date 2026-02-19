@@ -9,6 +9,7 @@ from wagtail.admin.panels import FieldPanel, FieldRowPanel, InlinePanel, MultiFi
 from wagtail.fields import RichTextField
 from wagtail.models import Page
 
+
 class FormField(AbstractFormField):
     page = ParentalKey(
         "contact.ContactFormPage",
@@ -16,10 +17,12 @@ class FormField(AbstractFormField):
         related_name="form_fields",
     )
 
+
 class ConsentFormBuilder(FormBuilder):
     """
     Ajoute un champ 'consent' à la fin du formulaire.
     """
+
     def get_form_fields(self):
         fields = super().get_form_fields()
         # On laisse FormBuilder construire le reste, puis on ajoute 'consent'
@@ -29,17 +32,21 @@ class ConsentFormBuilder(FormBuilder):
         )
         return fields
 
+
 class ContactFormPage(AbstractEmailForm):
     template = "contact/contact_form_page.html"
-    thank_you_text = RichTextField(blank=True, help_text="Texte affiché après envoi réussi.")
+    thank_you_text = RichTextField(
+        blank=True, help_text="Texte affiché après envoi réussi.")
 
     # Réglages emails
     to_address = models.CharField(
         max_length=255, blank=True,
         help_text="Destinataire(s) de notification, séparés par des virgules."
     )
-    from_address = models.CharField(max_length=255, blank=True, help_text="Adresse expéditrice")
-    subject = models.CharField(max_length=255, blank=True, help_text="Sujet du mail de notification")
+    from_address = models.CharField(
+        max_length=255, blank=True, help_text="Adresse expéditrice")
+    subject = models.CharField(
+        max_length=255, blank=True, help_text="Sujet du mail de notification")
 
     # Consentement
     consent_text = RichTextField(
@@ -82,3 +89,119 @@ class ContactFormPage(AbstractEmailForm):
         # Fournir la page au builder pour connaître consent_required
         fb.page = self
         return fb.get_form_class()
+
+
+class DemandeFormationFormBuilder(FormBuilder):
+    def get_form_fields(self):
+        fields = super().get_form_fields()
+        # champ caché toujours présent
+        fields["formation_id"] = forms.CharField(
+            required=False,
+            widget=forms.HiddenInput()
+        )
+        return fields
+
+
+class DemandeFormationFormField(AbstractFormField):
+    page = ParentalKey(
+        "contact.DemandeFormationPage",
+        on_delete=models.CASCADE,
+        related_name="form_fields",
+    )
+    panels = [
+        FieldPanel("label"),
+        FieldPanel("clean_name"),     # ✅ le “Nom interne”
+        FieldPanel("field_type"),
+        FieldPanel("required"),
+        FieldPanel("choices"),
+        FieldPanel("default_value"),
+        FieldPanel("help_text"),
+    ]
+
+
+class DemandeFormationPage(AbstractEmailForm):
+    template = "contact/demande_formation_page.html"
+    landing_page_template = "contact/demande_formation_page_landing.html"
+
+    intro = RichTextField(blank=True)
+    thank_you_text = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        MultiFieldPanel(
+            [
+                InlinePanel("form_fields", label="Champs du formulaire"),
+            ],
+            heading="Formulaire",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("to_address"),
+                FieldPanel("from_address"),
+                FieldPanel("subject"),
+            ],
+            heading="Emails (réception)",
+        ),
+        FieldPanel("thank_you_text"),
+    ]
+
+    parent_page_types = ["pages.HomePage", "wagtailcore.Page"]
+    subpage_types = []
+
+    def get_form_class(self):
+        fb = DemandeFormationFormBuilder(self.form_fields.all())
+        fb.page = self
+        return fb.get_form_class()
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+
+        formation_id = getattr(
+            self, "request", None) and self.request.GET.get("formation_id")
+
+        if formation_id:
+            # ✅ Si le champ n'existe pas, on le crée (anti-KeyError)
+            if "formation_id" not in form.fields:
+                form.fields["formation_id"] = forms.CharField(
+                    required=False,
+                    widget=forms.HiddenInput()
+                )
+
+            form.fields["formation_id"].initial = str(formation_id)
+
+        return form
+
+    def process_form_submission(self, form):
+        """
+        Sécurité: on force l'id depuis l'URL pour éviter qu'il soit modifié côté client.
+        """
+        formation_id = getattr(
+            self, "request", None) and self.request.GET.get("formation_id")
+        if formation_id:
+            form.cleaned_data["formation_id"] = str(formation_id)
+
+        return super().process_form_submission(form)
+
+    def serve(self, request, *args, **kwargs):
+        self.request = request
+        return super().serve(request, *args, **kwargs)
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+
+        formation_id = request.GET.get("formation_id")
+        formation_title = None
+
+        if formation_id:
+            try:
+                formation_page = Page.objects.get(
+                    id=int(formation_id)).specific
+                formation_title = formation_page.title
+            except Page.DoesNotExist:
+                formation_title = None
+            except ValueError:
+                formation_title = None
+
+        context["formation_id"] = formation_id
+        context["formation_title"] = formation_title
+        return context
