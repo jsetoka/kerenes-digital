@@ -13,7 +13,6 @@ from modelcluster.fields import ParentalKey
 from django.shortcuts import redirect
 
 
-
 class BlogIndexPage(Page):
     intro = RichTextField(blank=True)
 
@@ -65,14 +64,18 @@ class BlogIndexPage(Page):
         })
         return context
 
-    
+
 class BlogPageTag(TaggedItemBase):
-    content_object = ParentalKey("blog.BlogPage", related_name="tagged_items", on_delete=models.CASCADE)
+    content_object = ParentalKey(
+        "blog.BlogPage", related_name="tagged_items", on_delete=models.CASCADE)
+
 
 class BlogPage(Page):
     date = models.DateField("Date de publication")
     intro = RichTextField(features=["bold", "italic"])
-    body = RichTextField(features=["bold", "italic", "link", "image", "embed"])
+    body = RichTextField(
+        features=["h2", "bold", "italic", "link", "ol", "ul", "image", "embed"])
+
     image = models.ForeignKey(
         "wagtailimages.Image",
         null=True,
@@ -87,7 +90,6 @@ class BlogPage(Page):
     )
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
     categories = ParentalManyToManyField("blog.BlogCategory", blank=True)
-
 
     content_panels = Page.content_panels + [
         FieldPanel("date"),
@@ -114,14 +116,17 @@ class BlogPage(Page):
                    .order_by("-date", "-first_published_at")[:6]
         )
         return context
-    
+
+
 @register_snippet
 class BlogCategory(models.Model):
     name = models.CharField(max_length=80, unique=True)
-    slug = models.SlugField(max_length=100, unique=True, help_text="Utilisé dans l’URL ou les filtres ?cat=slug")
+    slug = models.SlugField(max_length=100, unique=True,
+                            help_text="Utilisé dans l’URL ou les filtres ?cat=slug")
     description = models.TextField(blank=True)
 
-    panels = [FieldPanel("name"), FieldPanel("slug"), FieldPanel("description")]
+    panels = [FieldPanel("name"), FieldPanel(
+        "slug"), FieldPanel("description")]
 
     def __str__(self):
         return self.name
