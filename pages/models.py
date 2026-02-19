@@ -125,6 +125,7 @@ class FormationPage(Page):
     public_cible = models.CharField(max_length=255)
 
     objectif = RichTextField(blank=True)
+    prerequis = RichTextField(blank=True)
     programme = RichTextField(blank=True)
 
     niveau = models.CharField(
@@ -170,6 +171,7 @@ class FormationPage(Page):
         ], heading="Informations générales"),
 
         FieldPanel("objectif"),
+        FieldPanel("prerequis"),
         FieldPanel("programme"),
 
         # ✅ Panneau CTA
