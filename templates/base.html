@@ -17,25 +17,29 @@
   <body class="d-flex flex-column min-vh-100 bg-perso">
     {% wagtailuserbar %}
 
-    <header class="bg-navy">
-      <nav class="navbar navbar-expand-lg navbar-dark bg-navy">
+    <header class="bg-navy border-bottom border-white border-opacity-10 sticky-top">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-navy py-2">
         <div class="container-fluid">
 
-          <a class="navbar-brand d-flex align-items-center" href="/">
-            <img src="{% static 'images/logo-kerasgo.png' %}" alt="Kerene's Digital" height="50" class="me-2">
-            <span class="fw-bold text-light">Kerene's Digital</span>
+          <!-- Brand -->
+          <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <img src="{% static 'images/logo-kerasgo.png' %}" alt="Kerene's Digital" height="44" class="rounded-2">
+            <div class="lh-1">
+              <div class="fw-bold text-light">Kerene's Digital</div>
+              <div class="text-light text-opacity-75 small d-none d-sm-block">Données • IA • Applications • Performance</div>
+            </div>
           </a>
 
-          <!-- Bouton HAMBURGER -->
-          <button class="navbar-toggler ms-auto" type="button"
+          <!-- Mobile toggler -->
+          <button class="navbar-toggler ms-auto border-0 shadow-none" type="button"
                   data-bs-toggle="offcanvas" data-bs-target="#mainOffcanvas"
                   aria-controls="mainOffcanvas" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>
           </button>
 
-          <!-- MENU DESKTOP (>= lg) -->
+          <!-- Desktop -->
           <div class="collapse navbar-collapse d-none d-lg-flex">
-            <ul class="navbar-nav ms-auto align-items-lg-center">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
 
               {# MENU DYNAMIQUE #}
               {% for item in main_menu_items %}
@@ -43,15 +47,14 @@
                   {% with children=item.children.all %}
                     {% if item.show_children and children %}
                       <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle px-3" href="#"
-                           role="button" data-bs-toggle="dropdown"
-                           aria-expanded="false">
+                        <a class="nav-link dropdown-toggle px-3 rounded-2"
+                          href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                           {{ item.title }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                           {% for child in children %}
                             <li>
-                              <a class="dropdown-item" href="{{ child.url|default:'#' }}">
+                              <a class="dropdown-item py-2" href="{{ child.url|default:'#' }}">
                                 {{ child.title }}
                               </a>
                             </li>
@@ -60,7 +63,7 @@
                       </li>
                     {% else %}
                       <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ item.url|default:'#' }}">
+                        <a class="nav-link px-3 rounded-2" href="{{ item.url|default:'#' }}">
                           {{ item.title }}
                         </a>
                       </li>
@@ -69,24 +72,44 @@
                 {% endif %}
               {% endfor %}
 
-              {# 🔐 ZONE AUTH (Django 5: logout en POST) #}
+              <li class="nav-item mx-2 d-none d-lg-block">
+                <span class="text-white text-opacity-25">|</span>
+              </li>
+
+              {# AUTH ZONE (modern) #}
               {% if user.is_authenticated %}
-                <li class="nav-item ms-lg-3">
-                  <span class="navbar-text text-light small me-2">
-                    👤 {{ user.username }}
-                  </span>
-                </li>
-                <li class="nav-item">
-                  <form method="post" action="{% url 'logout' %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-warning">
-                      Déconnexion
-                    </button>
-                  </form>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle px-3 d-flex align-items-center gap-2 rounded-2"
+                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-10"
+                          style="width:32px;height:32px;">
+                      <span class="small text-light fw-semibold">
+                        {{ user.username|slice:":1"|upper }}
+                      </span>
+                    </span>
+                    <span class="text-light">{{ user.username }}</span>
+                  </a>
+
+                  <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li>
+                      <a class="dropdown-item py-2" href="/admin/">
+                        Administration
+                      </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="post" action="{% url 'logout' %}" class="px-2 py-1">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                          Déconnexion
+                        </button>
+                      </form>
+                    </li>
+                  </ul>
                 </li>
               {% else %}
-                <li class="nav-item ms-lg-3">
-                  <a class="btn btn-sm btn-outline-info" href="{% url 'login' %}">
+                <li class="nav-item">
+                  <a class="btn btn-sm btn-outline-info ms-lg-2" href="{% url 'login' %}">
                     Connexion
                   </a>
                 </li>
@@ -95,26 +118,52 @@
             </ul>
           </div>
 
-          <!-- OFFCANVAS MOBILE (< lg) -->
+          <!-- Offcanvas mobile -->
           <div class="offcanvas offcanvas-start text-bg-dark d-lg-none"
-               tabindex="-1" id="mainOffcanvas" aria-labelledby="mainOffcanvasLabel">
-            <div class="offcanvas-header">
-              <h5 class="offcanvas-title" id="mainOffcanvasLabel">Menu</h5>
+              tabindex="-1" id="mainOffcanvas" aria-labelledby="mainOffcanvasLabel">
+            <div class="offcanvas-header border-bottom border-white border-opacity-10">
+              <div>
+                <h5 class="offcanvas-title mb-0" id="mainOffcanvasLabel">Menu</h5>
+                <div class="small text-white text-opacity-75">Kerene's Digital</div>
+              </div>
               <button type="button" class="btn-close btn-close-white"
                       data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
             </div>
 
             <div class="offcanvas-body">
-              <ul class="navbar-nav">
+              <!-- Auth top -->
+              <div class="p-3 rounded-3 bg-white bg-opacity-10 mb-3">
+                {% if user.is_authenticated %}
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white bg-opacity-10 d-flex align-items-center justify-content-center"
+                        style="width:36px;height:36px;">
+                      <span class="fw-semibold">{{ user.username|slice:":1"|upper }}</span>
+                    </div>
+                    <div>
+                      <div class="fw-semibold">{{ user.username }}</div>
+                      <div class="small text-white text-opacity-75">Compte connecté</div>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <div class="fw-semibold">Bienvenue</div>
+                      <div class="small text-white text-opacity-75">Connecte-toi pour accéder aux espaces privés</div>
+                    </div>
+                    <a class="btn btn-sm btn-outline-info" href="{% url 'login' %}">Connexion</a>
+                  </div>
+                {% endif %}
+              </div>
 
-                {# MENU DYNAMIQUE #}
+              <!-- Menu items -->
+              <ul class="navbar-nav">
                 {% for item in main_menu_items %}
                   {% if not item.requires_login or user.is_authenticated %}
                     {% with children=item.children.all %}
                       {% if item.show_children and children %}
-                        <li class="nav-item">
-                          <div class="fw-semibold mt-2 mb-1">{{ item.title }}</div>
-                          <ul class="list-unstyled ps-2">
+                        <li class="nav-item mb-2">
+                          <div class="fw-semibold text-white text-opacity-75 mb-1">{{ item.title }}</div>
+                          <ul class="list-unstyled ps-2 mb-0">
                             {% for child in children %}
                               <li class="mb-1">
                                 <a class="nav-link py-1" href="{{ child.url|default:'#' }}">
@@ -132,38 +181,25 @@
                     {% endwith %}
                   {% endif %}
                 {% endfor %}
-
-                <hr class="my-3">
-
-                {# 🔐 ZONE AUTH MOBILE #}
-                {% if user.is_authenticated %}
-                  <li class="nav-item mb-2 text-light">
-                    Connecté : <strong>{{ user.username }}</strong>
-                  </li>
-                  <li class="nav-item">
-                    <form method="post" action="{% url 'logout' %}">
-                      {% csrf_token %}
-                      <button type="submit"
-                              class="nav-link text-danger bg-transparent border-0 text-start w-100">
-                        Déconnexion
-                      </button>
-                    </form>
-                  </li>
-                {% else %}
-                  <li class="nav-item">
-                    <a class="nav-link text-info" href="{% url 'login' %}">
-                      Connexion
-                    </a>
-                  </li>
-                {% endif %}
-
               </ul>
+
+              {% if user.is_authenticated %}
+                <hr class="my-3 border-white border-opacity-10">
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger w-100">
+                    Déconnexion
+                  </button>
+                </form>
+              {% endif %}
+
             </div>
           </div>
 
         </div>
       </nav>
     </header>
+
 
     <main class="container my-3">
       <div class="row justify-content-center">
