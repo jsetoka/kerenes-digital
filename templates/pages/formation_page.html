@@ -2,43 +2,161 @@
 {% load wagtailcore_tags %}
 
 {% block content %}
-
 <section class="container py-5">
 
-    <h1 class="fw-bold">{{ page.title }}</h1>
+  {# HERO #}
+  <div class="row align-items-start g-4">
+    <div class="col-12 col-lg-8">
+      <h1 class="display-6 fw-bold mb-3">{{ page.title }}</h1>
 
-    <div class="badge bg-primary">{{ page.niveau }}</div>
-    <div class="badge bg-dark">{{ page.duree }}</div>
-    <div class="badge bg-success">{{ page.modalite }}</div>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge text-bg-primary px-3 py-2">{{ page.niveau }}</span>
+        <span class="badge text-bg-dark px-3 py-2">{{ page.duree }}</span>
+        <span class="badge text-bg-success px-3 py-2">{{ page.modalite }}</span>
+      </div>
 
-    <hr>
-
-    <h3>Objectifs</h3>
-    <div class="lead">
-        {{ page.objectif|richtext }}
+      {% if page.objectif %}
+        <p class="text-muted mb-0">
+          {{ page.objectif|richtext }}
+        </p>
+      {% endif %}
     </div>
 
-    <h3 class="mt-4">Programme</h3>
-    <div>
-        {{ page.programme|richtext }}
+    {# CTA + infos rapides #}
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4">🎓</span>
+            <div>
+              <div class="fw-semibold">Inscription / Demande</div>
+              <div class="text-muted small">Réponse rapide</div>
+            </div>
+          </div>
+
+          {% if page.cta_label %}
+            {% if page.cta_page %}
+              <a class="btn btn-primary btn-lg w-100"
+                 href="{{ page.cta_page.url }}?formation_id={{ page.id }}&formation_title={{ page.title|urlencode }}">
+                {{ page.cta_label }}
+              </a>
+            {% elif page.cta_url %}
+              <a class="btn btn-primary btn-lg w-100"
+                 href="{{ page.cta_url }}" target="_blank" rel="noopener">
+                {{ page.cta_label }}
+              </a>
+            {% endif %}
+          {% else %}
+            <a class="btn btn-outline-primary btn-lg w-100" href="/contactez-nous/">
+              Nous contacter
+            </a>
+          {% endif %}
+
+          <hr class="my-4">
+
+          <div class="d-flex flex-column gap-2 small text-muted">
+            <div class="d-flex justify-content-between">
+              <span>Durée</span><span class="fw-semibold text-dark">{{ page.duree }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Niveau</span><span class="fw-semibold text-dark">{{ page.niveau }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Modalité</span><span class="fw-semibold text-dark">{{ page.modalite }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 text-center">
+        <a href="/formations-ia/" class="text-decoration-none small">← Retour au catalogue</a>
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-5">
+
+  {# CONTENU #}
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h2 class="h4 fw-bold mb-3">Objectifs</h2>
+          <div class="text-muted">
+            {{ page.objectif|richtext }}
+          </div>
+        </div>
+      </div>
+
+      {% if page.prerequis %}
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body p-4 p-md-5">
+            <h2 class="h4 fw-bold mb-3">Prérequis</h2>
+            <div class="text-muted">
+              {{ page.prerequis|richtext }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <h2 class="h4 fw-bold mb-3">Programme</h2>
+          <div class="text-muted">
+            {{ page.programme|richtext }}
+          </div>
+        </div>
+      </div>
+
+      {# CTA secondaire en bas (utile après lecture) #}
+      {% if page.cta_label %}
+        <div class="d-grid d-md-flex gap-2 mt-4">
+          {% if page.cta_page %}
+            <a class="btn btn-primary btn-lg"
+               href="{{ page.cta_page.url }}?formation_id={{ page.id }}&formation_title={{ page.title|urlencode }}">
+              {{ page.cta_label }}
+            </a>
+          {% elif page.cta_url %}
+            <a class="btn btn-primary btn-lg" href="{{ page.cta_url }}" target="_blank" rel="noopener">
+              {{ page.cta_label }}
+            </a>
+          {% endif %}
+          <a class="btn btn-outline-secondary btn-lg" href="/contactez-nous/">
+            Poser une question
+          </a>
+        </div>
+      {% endif %}
+
     </div>
 
-    {% if page.cta_label %}
-    <div class="mt-5 text-center">
-        {% if page.cta_page %}
-        <a class="btn btn-primary btn-lg"
-            href="{{ page.cta_page.url }}?formation_id={{ page.id }}&formation_title={{ page.title|urlencode }}">
-            {{ page.cta_label }}
-        </a>
-        {% elif page.cta_url %}
-        <a class="btn btn-primary btn-lg" href="{{ page.cta_url }}" target="_blank" rel="noopener">
-            {{ page.cta_label }}
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
+    {# SIDEBAR (optionnel) #}
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="h6 fw-bold mb-3">Ce que vous allez obtenir</h3>
+          <ul class="mb-0 text-muted">
+            <li>Une méthode claire et applicable</li>
+            <li>Des exemples concrets</li>
+            <li>Un support réutilisable</li>
+            <li>Des conseils pour la mise en œuvre</li>
+          </ul>
+        </div>
+      </div>
 
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+          <h3 class="h6 fw-bold mb-2">Besoin d’une formation sur mesure ?</h3>
+          <p class="text-muted mb-3">
+            Nous adaptons le contenu à votre secteur et à votre niveau.
+          </p>
+          <a href="/demande-de-formation/" class="btn btn-outline-primary w-100">
+            Demander une formation entreprise
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </section>
-
 {% endblock %}
