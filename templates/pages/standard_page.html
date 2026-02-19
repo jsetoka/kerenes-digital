@@ -4,19 +4,66 @@
 {% block title %}{{ page.title }} — Kerene's Digital{% endblock %}
 
 {% block content %}
-  <article class="card page">
-    <h1>{{ page.title }}</h1>
-    {% if page.intro %}<p class="intro">{{ page.intro|richtext }}</p>{% endif %}
-    <div class="stream">
-      {% for block in page.body %}
-        {% if block.block_type == "paragraphe" %}
-          <div class="richtext">{{ block.value|richtext }}</div>
-        {% elif block.block_type == "image" %}
-          {% image block.value width-1200 %}
-        {% else %}
-          {{ block }}
-        {% endif %}
-      {% endfor %}
+<section class="py-4 py-lg-5">
+  <div class="container px-0">
+
+    <!-- Header -->
+    <header class="mb-4 mb-lg-5">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge text-bg-primary">Page</span>
+        {# optionnel: date / catégorie si tu ajoutes des champs plus tard #}
+      </div>
+
+      <h1 class="display-6 fw-bold mb-3">{{ page.title }}</h1>
+
+      {% if page.intro %}
+        <div class="lead text-body-secondary">
+          {{ page.intro|richtext }}
+        </div>
+      {% endif %}
+    </header>
+
+    <!-- Content -->
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10 col-xl-9">
+
+        <article class="vstack gap-4">
+
+          {% for block in page.body %}
+            {% if block.block_type == "paragraphe" %}
+              <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-4">
+                  <div class="richtext fs-6 lh-lg">
+                    {{ block.value|richtext }}
+                  </div>
+                </div>
+              </div>
+
+            {% elif block.block_type == "image" %}
+              <figure class="card border-0 shadow-sm overflow-hidden mb-0">
+                {% image block.value width-1600 class="img-fluid" %}
+              </figure>
+
+            {% else %}
+              <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                  {% include_block block %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          <!-- CTA bas de page (optionnel) -->
+          <div class="text-center pt-2">
+            <a href="/" class="btn btn-outline-secondary">
+              Retour à l’accueil
+            </a>
+          </div>
+
+        </article>
+      </div>
     </div>
-  </article>
+
+  </div>
+</section>
 {% endblock %}
