@@ -7,11 +7,17 @@
 <section class="py-4 py-lg-5">
   <div class="container px-0">
 
+    <!-- HERO optionnel -->
+    {% if page.hero_image %}
+      <div class="card border-0 shadow-sm overflow-hidden mb-4">
+        {% image page.hero_image width-2000 class="img-fluid" alt=page.hero_alt %}
+      </div>
+    {% endif %}
+
     <!-- Header -->
     <header class="mb-4 mb-lg-5">
       <div class="d-flex align-items-center gap-2 mb-2">
         <span class="badge text-bg-primary">Page</span>
-        {# optionnel: date / catégorie si tu ajoutes des champs plus tard #}
       </div>
 
       <h1 class="display-6 fw-bold mb-3">{{ page.title }}</h1>
@@ -23,16 +29,30 @@
       {% endif %}
     </header>
 
-    <!-- Content -->
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-10 col-xl-9">
+    <div class="row g-4">
+      <!-- Sommaire (col gauche) -->
+      {% if page.show_toc %}
+        <aside class="col-12 col-lg-4 order-lg-2">
+          <div class="card border-0 shadow-sm position-sticky" style="top: 1rem;">
+            <div class="card-body">
+              <div class="fw-semibold mb-2">Sommaire</div>
+              <div id="toc-empty" class="text-body-secondary small d-none">
+                Aucun titre (H2) trouvé.
+              </div>
+              <ol id="toc" class="small mb-0"></ol>
+            </div>
+          </div>
+        </aside>
+      {% endif %}
 
-        <article class="vstack gap-4">
+      <!-- Contenu (col principale) -->
+      <div class="col-12 {% if page.show_toc %}col-lg-8 order-lg-1{% else %}col-lg-10 mx-auto{% endif %}">
+        <article class="vstack gap-4" id="article-content">
 
           {% for block in page.body %}
             {% if block.block_type == "paragraphe" %}
               <div class="card border-0 shadow-sm">
-                <div class="card-body p-4 p-lg-4">
+                <div class="card-body p-4">
                   <div class="richtext fs-6 lh-lg">
                     {{ block.value|richtext }}
                   </div>
@@ -53,11 +73,8 @@
             {% endif %}
           {% endfor %}
 
-          <!-- CTA bas de page (optionnel) -->
           <div class="text-center pt-2">
-            <a href="/" class="btn btn-outline-secondary">
-              Retour à l’accueil
-            </a>
+            <a href="/" class="btn btn-outline-secondary">Retour à l’accueil</a>
           </div>
 
         </article>
@@ -66,4 +83,66 @@
 
   </div>
 </section>
+
+{% if page.show_toc %}
+<script>
+(function () {
+  function slugify(text) {
+    return text
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/['"]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  const toc = document.getElementById("toc");
+  const tocEmpty = document.getElementById("toc-empty");
+  if (!toc) return;
+
+  // On cible uniquement les H2 dans les blocs richtext
+  const headings = document.querySelectorAll("#article-content .richtext h2");
+
+  if (!headings.length) {
+    tocEmpty && tocEmpty.classList.remove("d-none");
+    return;
+  }
+
+  const used = new Set();
+  headings.forEach((h2) => {
+    const title = (h2.textContent || "").trim();
+    if (!title) return;
+
+    let id = h2.id ? h2.id : slugify(title);
+    if (!id) id = "section";
+
+    // éviter les doublons
+    let base = id;
+    let i = 2;
+    while (used.has(id) || document.getElementById(id)) {
+      id = base + "-" + i;
+      i++;
+    }
+    used.add(id);
+
+    h2.id = id;
+
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = "#" + id;
+    a.textContent = title;
+    a.className = "link-secondary text-decoration-none";
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      document.getElementById(id).scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", "#" + id);
+    });
+
+    li.appendChild(a);
+    toc.appendChild(li);
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

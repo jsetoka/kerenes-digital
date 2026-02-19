@@ -2,34 +2,150 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
 {% block content %}
-<section class="p-5 text-center bg-dark text-white">
-  <div class="container">
+
+{# HERO #}
+<section class="position-relative overflow-hidden text-white">
+  {# Image de fond + overlay #}
+  <div class="position-absolute top-0 start-0 w-100 h-100">
     {% if page.hero_image %}
-      {% image page.hero_image fill-1400x450 class="img-fluid rounded mb-4" %}
+      {% image page.hero_image fill-1800x700 class="w-100 h-100" %}
+      <div class="position-absolute top-0 start-0 w-100 h-100"
+           style="background: linear-gradient(90deg, rgba(0,0,0,.75), rgba(0,0,0,.35));"></div>
+    {% else %}
+      <div class="w-100 h-100"
+           style="background: radial-gradient(circle at 20% 20%, #1d4ed8 0%, #0b1220 60%, #020617 100%);"></div>
     {% endif %}
+  </div>
 
-    {% if page.hero_title %}<h1 class="display-5 fw-bold">{{ page.hero_title }}</h1>{% endif %}
-    {% if page.hero_subtitle %}<div class="lead">{{ page.hero_subtitle|richtext }}</div>{% endif %}
-
-    {% if page.hero_cta_label %}
-      <div class="mt-4">
-        {% if page.hero_cta_page %}
-          <a class="btn btn-primary btn-lg" href="{{ page.hero_cta_page.url }}">{{ page.hero_cta_label }}</a>
-        {% elif page.hero_cta_url %}
-          <a class="btn btn-primary btn-lg" href="{{ page.hero_cta_url }}" target="_blank" rel="noopener">
-            {{ page.hero_cta_label }}
-          </a>
+  <div class="container position-relative py-5" style="min-height: 520px;">
+    <div class="row align-items-center g-4">
+      <div class="col-12 col-lg-7">
+        {% if page.hero_title %}
+          <h1 class="display-5 fw-bold mb-3">
+            {{ page.hero_title }}
+          </h1>
         {% endif %}
+
+        {% if page.hero_subtitle %}
+          <div class="lead text-white-50 mb-4">
+            {{ page.hero_subtitle|richtext }}
+          </div>
+        {% endif %}
+
+        {# Pills / USP #}
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <span class="badge rounded-pill text-bg-light text-dark px-3 py-2">📊 Data</span>
+          <span class="badge rounded-pill text-bg-light text-dark px-3 py-2">💻 Applications</span>
+          <span class="badge rounded-pill text-bg-light text-dark px-3 py-2">⚡ Performance</span>
+          <span class="badge rounded-pill text-bg-light text-dark px-3 py-2">🤖 IA</span>
+          <span class="badge rounded-pill text-bg-light text-dark px-3 py-2">🎓 Formation</span>
+        </div>
+
+        {# CTA #}
+        <div class="d-flex flex-column flex-sm-row gap-2">
+          {% if page.hero_cta_label %}
+            {% if page.hero_cta_page %}
+              <a class="btn btn-primary btn-lg px-4" href="{{ page.hero_cta_page.url }}">
+                {{ page.hero_cta_label }}
+              </a>
+            {% elif page.hero_cta_url %}
+              <a class="btn btn-primary btn-lg px-4" href="{{ page.hero_cta_url }}" target="_blank" rel="noopener">
+                {{ page.hero_cta_label }}
+              </a>
+            {% endif %}
+          {% endif %}
+
+          {# CTA secondaire (optionnel) : adapte l’URL si tu veux #}
+          <a class="btn btn-outline-light btn-lg px-4" href="/formations-ia/">
+            Voir les formations
+          </a>
+        </div>
+
+        <div class="mt-4 text-white-50 small">
+          Moins de tâches manuelles • Plus de visibilité • Meilleures décisions
+        </div>
       </div>
-    {% endif %}
+
+      {# Carte de confiance / promesse #}
+      <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-lg bg-white text-dark">
+          <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-start gap-3">
+              <div class="fs-3">🚀</div>
+              <div>
+                <div class="fw-bold h5 mb-1">Votre performance commence par vos données</div>
+                <div class="text-muted">
+                  Nous construisons des systèmes mesurables et automatisés : du diagnostic jusqu’au déploiement.
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="fw-semibold">Comprendre</div>
+                  <div class="text-muted small">audit & données</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="fw-semibold">Construire</div>
+                  <div class="text-muted small">apps & outils</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="fw-semibold">Automatiser</div>
+                  <div class="text-muted small">process & IA</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded bg-light">
+                  <div class="fw-semibold">Optimiser</div>
+                  <div class="text-muted small">KPI & perf</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <a class="btn btn-dark w-100" href="/demande-de-formation/">
+                Demander un diagnostic
+              </a>
+            </div>
+            <div class="text-muted small text-center mt-2">
+              Réponse rapide • Offre adaptée à votre contexte
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>
 
-<section class="py-5">
+{# CONTENU #}
+<section class="py-5" style="background: #f8fafc;">
   <div class="container">
-    {% for block in page.body %}
-      {% include_block block %}
-    {% endfor %}
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold mb-2">Ce que nous faisons, concrètement</h2>
+          <p class="text-muted mb-0">
+            Des solutions simples, mesurables et utiles — adaptées à votre réalité.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-12">
+        {# Cards / sections dynamiques Wagtail #}
+        {% for block in page.body %}
+          {% include_block block %}
+        {% endfor %}
+      </div>
+    </div>
   </div>
 </section>
+
 {% endblock %}

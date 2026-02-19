@@ -74,7 +74,16 @@ class HomePage(Page):
 
 
 class StandardPage(Page):
-    template = "pages/standard_page.html"
+    hero_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+"
+    )
+    hero_alt = models.CharField(max_length=160, blank=True)
+    show_toc = models.BooleanField(
+        default=True, help_text="Afficher le sommaire automatique (H2)")
+
     intro = RichTextField(blank=True)
     body = StreamField(
         [
@@ -87,6 +96,11 @@ class StandardPage(Page):
     )
 
     content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel("hero_image"),
+            FieldPanel("hero_alt"),
+            FieldPanel("show_toc"),
+        ], heading="En-tête (Hero)"),
         FieldPanel("intro"),
         FieldPanel("body"),
     ]
