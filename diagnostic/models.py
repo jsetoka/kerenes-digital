@@ -149,6 +149,66 @@ class CaptureLeadPage(AbstractEmailForm):
 # PAGE D — Complet
 class DiagnosticCompletPage(Page):
     parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
+    template = "diagnostic/diagnostic_complet_page.html"
+
+    def serve(self, request):
+        # Il faut un lead enregistré (après capture)
+        last_id = request.session.get("diag_last_id")
+        if not last_id:
+            return redirect("/diagnostic-ia/recevoir-resultat/")
+
+        # récupère la soumission
+        sub = DiagnosticSubmission.objects.filter(id=last_id).first()
+        if not sub:
+            return redirect("/diagnostic-ia/recevoir-resultat/")
+
+        if request.method == "POST":
+            form = DiagnosticCompletForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+
+                # Sauvegarde dans DiagnosticSubmission
+                for k, v in data.items():
+                    setattr(sub, k, v)
+                sub.complet_done = True
+
+                # Option: recalcul score (express + complet)
+                # Pour l’instant on garde score existant si déjà calculé, sinon express.
+                express = request.session.get("diag_express", {})
+                score = calcul_score_express(express)
+
+                # Bonus : pondération "complet" simple
+                score += {"faible": 5, "moyen": 10,
+                          "eleve": 15}.get(sub.c1_risque_erreur, 0)
+                score += {"0_1": 5, "1_5": 10, "5_20": 15,
+                          "20_plus": 20}.get(sub.c2_pertes, 0)
+                score += {"whatsapp_excel": 0, "drive": 5,
+                          "crm_erp": 10, "dwh": 15}.get(sub.c3_stockage_data, 0)
+                score += {"aucun": 0, "ponctuel": 5, "regulier": 10,
+                          "industrialise": 15}.get(sub.c4_usage_ia, 0)
+
+                niveau, gain = niveau_et_gain(score)
+                sub.score = min(score, 100)
+                sub.niveau = niveau
+                sub.estimation_gain = gain
+
+                sub.save()
+
+                return redirect("/diagnostic-ia/resultat/")
+        else:
+            # pré-remplir si déjà répondu
+            initial = {
+                "c1_risque_erreur": sub.c1_risque_erreur,
+                "c2_pertes": sub.c2_pertes,
+                "c3_stockage_data": sub.c3_stockage_data,
+                "c4_usage_ia": sub.c4_usage_ia,
+                "c5_objectif": sub.c5_objectif,
+                "c6_frequence_reporting": sub.c6_frequence_reporting,
+                "c7_priorite_process": sub.c7_priorite_process,
+            }
+            form = DiagnosticCompletForm(initial=initial)
+
+        return render(request, self.template, {"page": self, "form": form, "lead": sub})
 
 
 # PAGE E — Résultat
@@ -240,10 +300,58 @@ class DiagnosticResultatPage(Page):
         # 3️⃣ Rien trouvé → retour début tunnel
         return redirect("/diagnostic-ia/express/")
 
-
 # PAGE F — RDV
+
+
 class DiagnosticRdvPage(Page):
     parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
+    template = "diagnostic/diagnostic_rdv_page.html"
+
+    intro = models.TextField(blank=True)
+    calendly_url = models.URLField(
+        blank=True, help_text="Si renseigné, on affiche Calendly (embed).")
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        FieldPanel("calendly_url"),
+    ]
+
+    def serve(self, request):
+        # On tente de récupérer le lead du diagnostic (si existant)
+        sub = None
+        last_id = request.session.get("diag_last_id")
+        if last_id:
+            sub = DiagnosticSubmission.objects.filter(id=last_id).first()
+
+        # Si Calendly est configuré → on affiche juste l’embed
+        if self.calendly_url:
+            return render(request, self.template, {"page": self, "lead": sub})
+
+        # Sinon : formulaire interne
+        if request.method == "POST":
+            form = RdvRequestForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+
+                RdvRequest.objects.create(
+                    submission=sub,
+                    nom=data.get("nom") or (sub.nom if sub else ""),
+                    email=data.get("email") or (sub.email if sub else ""),
+                    telephone=data["telephone"],
+                    creneau=data["creneau"],
+                    canal=data["canal"],
+                    besoin=data.get("besoin", ""),
+                )
+
+                return redirect(self.url + "?ok=1")
+        else:
+            initial = {}
+            if sub:
+                initial = {"nom": sub.nom, "email": sub.email,
+                           "telephone": sub.telephone}
+            form = RdvRequestForm(initial=initial)
+
+        return render(request, self.template, {"page": self, "form": form, "lead": sub})
 
 
 class DiagnosticSubmission(models.Model):
@@ -306,57 +414,6 @@ class RdvRequest(models.Model):
         return f"RDV {self.creneau} - {self.telephone}"
 
 
-class DiagnosticRdvPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_rdv_page.html"
-
-    intro = models.TextField(blank=True)
-    calendly_url = models.URLField(
-        blank=True, help_text="Si renseigné, on affiche Calendly (embed).")
-
-    content_panels = Page.content_panels + [
-        FieldPanel("intro"),
-        FieldPanel("calendly_url"),
-    ]
-
-    def serve(self, request):
-        # On tente de récupérer le lead du diagnostic (si existant)
-        sub = None
-        last_id = request.session.get("diag_last_id")
-        if last_id:
-            sub = DiagnosticSubmission.objects.filter(id=last_id).first()
-
-        # Si Calendly est configuré → on affiche juste l’embed
-        if self.calendly_url:
-            return render(request, self.template, {"page": self, "lead": sub})
-
-        # Sinon : formulaire interne
-        if request.method == "POST":
-            form = RdvRequestForm(request.POST)
-            if form.is_valid():
-                data = form.cleaned_data
-
-                RdvRequest.objects.create(
-                    submission=sub,
-                    nom=data.get("nom") or (sub.nom if sub else ""),
-                    email=data.get("email") or (sub.email if sub else ""),
-                    telephone=data["telephone"],
-                    creneau=data["creneau"],
-                    canal=data["canal"],
-                    besoin=data.get("besoin", ""),
-                )
-
-                return redirect(self.url + "?ok=1")
-        else:
-            initial = {}
-            if sub:
-                initial = {"nom": sub.nom, "email": sub.email,
-                           "telephone": sub.telephone}
-            form = RdvRequestForm(initial=initial)
-
-        return render(request, self.template, {"page": self, "form": form, "lead": sub})
-
-
 # --- Réponses Diagnostic complet ---
 c1_risque_erreur = models.CharField(max_length=50, blank=True)
 c2_pertes = models.CharField(max_length=50, blank=True)
@@ -368,67 +425,3 @@ c7_priorite_process = models.CharField(max_length=50, blank=True)
 
 # Marqueur
 complet_done = models.BooleanField(default=False)
-
-
-class DiagnosticCompletPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_complet_page.html"
-
-    def serve(self, request):
-        # Il faut un lead enregistré (après capture)
-        last_id = request.session.get("diag_last_id")
-        if not last_id:
-            return redirect("/diagnostic-ia/recevoir-resultat/")
-
-        # récupère la soumission
-        sub = DiagnosticSubmission.objects.filter(id=last_id).first()
-        if not sub:
-            return redirect("/diagnostic-ia/recevoir-resultat/")
-
-        if request.method == "POST":
-            form = DiagnosticCompletForm(request.POST)
-            if form.is_valid():
-                data = form.cleaned_data
-
-                # Sauvegarde dans DiagnosticSubmission
-                for k, v in data.items():
-                    setattr(sub, k, v)
-                sub.complet_done = True
-
-                # Option: recalcul score (express + complet)
-                # Pour l’instant on garde score existant si déjà calculé, sinon express.
-                express = request.session.get("diag_express", {})
-                score = calcul_score_express(express)
-
-                # Bonus : pondération "complet" simple
-                score += {"faible": 5, "moyen": 10,
-                          "eleve": 15}.get(sub.c1_risque_erreur, 0)
-                score += {"0_1": 5, "1_5": 10, "5_20": 15,
-                          "20_plus": 20}.get(sub.c2_pertes, 0)
-                score += {"whatsapp_excel": 0, "drive": 5,
-                          "crm_erp": 10, "dwh": 15}.get(sub.c3_stockage_data, 0)
-                score += {"aucun": 0, "ponctuel": 5, "regulier": 10,
-                          "industrialise": 15}.get(sub.c4_usage_ia, 0)
-
-                niveau, gain = niveau_et_gain(score)
-                sub.score = min(score, 100)
-                sub.niveau = niveau
-                sub.estimation_gain = gain
-
-                sub.save()
-
-                return redirect("/diagnostic-ia/resultat/")
-        else:
-            # pré-remplir si déjà répondu
-            initial = {
-                "c1_risque_erreur": sub.c1_risque_erreur,
-                "c2_pertes": sub.c2_pertes,
-                "c3_stockage_data": sub.c3_stockage_data,
-                "c4_usage_ia": sub.c4_usage_ia,
-                "c5_objectif": sub.c5_objectif,
-                "c6_frequence_reporting": sub.c6_frequence_reporting,
-                "c7_priorite_process": sub.c7_priorite_process,
-            }
-            form = DiagnosticCompletForm(initial=initial)
-
-        return render(request, self.template, {"page": self, "form": form, "lead": sub})
