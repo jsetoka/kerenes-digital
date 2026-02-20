@@ -127,7 +127,7 @@ class DiagnosticExpressPage(Page):
 
 
 # PAGE C — Capture lead (Wagtail Form)
-class CaptureLeadFormField(AbstractFormField):
+class FormField(AbstractFormField):
     page = ParentalKey(
         "diagnostic.CaptureLeadPage",
         on_delete=models.CASCADE,
@@ -149,6 +149,11 @@ class CaptureLeadPage(AbstractEmailForm):
         FieldPanel("from_address"),
         FieldPanel("subject"),
     ]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["next_step"] = request.GET.get("next", "")
+        return context
 
     def process_form_submission(self, form):
         submission = super().process_form_submission(form)
