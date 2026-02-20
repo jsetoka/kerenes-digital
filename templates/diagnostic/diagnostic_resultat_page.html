@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+{% if lead and lead.complet_done %}
+  <p class="text-muted">Analyse enrichie avec le diagnostic complet ✅</p>
+{% endif %}
+
+<section class="container py-5" style="max-width: 800px;">
+
+  <h1 class="fw-bold mb-4 text-center">
+    Votre niveau de maturité IA
+  </h1>
+
+  <!-- Badge niveau -->
+  <div class="text-center mb-4">
+    {% if niveau == "critique" %}
+      <div class="display-5">🔴 Niveau critique</div>
+      <p class="text-muted">Votre organisation perd probablement du temps et de l’argent.</p>
+    {% elif niveau == "intermediaire" %}
+      <div class="display-5">🟠 Niveau intermédiaire</div>
+      <p class="text-muted">Vous avez du potentiel mais des gains importants sont encore disponibles.</p>
+    {% else %}
+      <div class="display-5">🟢 Niveau avancé</div>
+      <p class="text-muted">Votre organisation est prête pour l’IA opérationnelle.</p>
+    {% endif %}
+  </div>
+
+  <!-- Score -->
+  <div class="text-center mb-5">
+    <div class="fs-2 fw-bold">{{ score }}/100</div>
+    <div class="progress mt-3" style="height: 14px;">
+      <div class="progress-bar" style="width: {{ score }}%"></div>
+    </div>
+  </div>
+
+  <!-- Constats -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h4>Constats</h4>
+
+      {% if niveau == "critique" %}
+        <ul>
+          <li>Données dispersées et non exploitées</li>
+          <li>Décisions majoritairement manuelles</li>
+          <li>Temps opérationnel perdu important</li>
+        </ul>
+      {% elif niveau == "intermediaire" %}
+        <ul>
+          <li>Outils numériques existants mais peu interconnectés</li>
+          <li>Analyse partielle des données</li>
+          <li>Automatisation possible rapidement</li>
+        </ul>
+      {% else %}
+        <ul>
+          <li>Base de données exploitable</li>
+          <li>Organisation prête pour IA prédictive</li>
+          <li>Optimisation avancée possible</li>
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recommandations -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h4>Recommandations</h4>
+
+      {% if niveau == "critique" %}
+        <ul>
+          <li>Centraliser vos données</li>
+          <li>Mettre en place tableaux de bord automatiques</li>
+          <li>Automatiser les tâches répétitives</li>
+        </ul>
+      {% elif niveau == "intermediaire" %}
+        <ul>
+          <li>Connecter vos outils existants</li>
+          <li>Déployer des prédictions simples</li>
+          <li>Introduire un assistant IA métier</li>
+        </ul>
+      {% else %}
+        <ul>
+          <li>Mettre en place IA prédictive métier</li>
+          <li>Optimiser la prise de décision en temps réel</li>
+          <li>Industrialiser l’IA dans l’organisation</li>
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Estimation gain -->
+  <div class="alert alert-success text-center mb-5">
+    <h4>Estimation de gain potentiel</h4>
+    {% if niveau == "critique" %}
+      <strong>+25% à +60% de productivité</strong>
+    {% elif niveau == "intermediaire" %}
+      <strong>+15% à +35% de productivité</strong>
+    {% else %}
+      <strong>+5% à +20% d’optimisation</strong>
+    {% endif %}
+  </div>
+
+  <!-- CTA RDV -->
+  <div class="text-center">
+    <a href="/diagnostic-ia/rdv/" class="btn btn-primary btn-lg">
+      Recevoir mon plan d’action personnalisé
+    </a>
+  </div>
+</section>
+
+{% endblock %}

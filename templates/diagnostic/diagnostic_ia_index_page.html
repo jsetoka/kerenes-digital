@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+
+<section class="container py-5" style="max-width: 980px;">
+
+  <!-- Hero -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold display-5 mb-3">
+      Diagnostic IA (1 minute)
+    </h1>
+
+    <p class="lead text-muted mb-4" style="max-width: 760px; margin: 0 auto;">
+      En 60 secondes, estimez votre niveau de maturité IA et découvrez vos gains potentiels
+      en productivité, coûts et qualité de décision.
+    </p>
+
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+      <a href="/diagnostic-ia/express/" class="btn btn-primary btn-lg">
+        Démarrer le diagnostic (1 min)
+      </a>
+      <a href="/diagnostic-ia/complet/" class="btn btn-outline-secondary btn-lg">
+        Passer au diagnostic complet
+      </a>
+    </div>
+
+    <p class="text-muted small mt-3 mb-0">
+      Aucun engagement — résultat immédiat — compatible mobile.
+    </p>
+  </div>
+
+  <!-- 3 bénéfices -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="fs-2 mb-2">⏱️</div>
+          <h5 class="fw-bold">Gain de temps</h5>
+          <p class="text-muted mb-0">
+            Automatisez les tâches répétitives et réduisez les délais de traitement.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="fs-2 mb-2">💸</div>
+          <h5 class="fw-bold">Réduction des coûts</h5>
+          <p class="text-muted mb-0">
+            Diminuez les pertes liées aux erreurs, retards, doublons et inefficacités.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="fs-2 mb-2">📊</div>
+          <h5 class="fw-bold">Meilleure décision</h5>
+          <p class="text-muted mb-0">
+            Exploitez vos données pour piloter, prévoir et décider plus vite, avec confiance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc Diagnostic Express -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-body p-4 p-md-5">
+      <div class="row align-items-center g-4">
+        <div class="col-md-8">
+          <h2 class="fw-bold mb-2">Diagnostic express (1 minute)</h2>
+          <p class="text-muted mb-3">
+            5 questions rapides. Vous recevez une estimation de gains + recommandations adaptées.
+          </p>
+
+          <ul class="text-muted mb-0">
+            <li>1 question par écran (mobile-first)</li>
+            <li>Résultat en fin de parcours</li>
+            <li>Option WhatsApp disponible</li>
+          </ul>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <a href="/diagnostic-ia/express/" class="btn btn-success btn-lg w-100 w-md-auto">
+            Démarrer (1 min)
+          </a>
+          <div class="text-muted small mt-2">
+            Temps estimé : 60 secondes
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confiance / preuve sociale simple -->
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card h-100 border-0 bg-light">
+        <div class="card-body">
+          <h5 class="fw-bold mb-2">Ce que vous obtenez</h5>
+          <ul class="mb-0">
+            <li>Un niveau (Rouge / Orange / Vert)</li>
+            <li>3 constats et 3 recommandations</li>
+            <li>Une estimation de gain (fourchette)</li>
+            <li>Un plan d’action (sur RDV 20 min)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100 border-0 bg-light">
+        <div class="card-body">
+          <h5 class="fw-bold mb-2">Pourquoi c’est utile</h5>
+          <p class="text-muted mb-0">
+            Beaucoup d’organisations ont des données, mais peu les transforment en décisions.
+            Ce diagnostic vous donne une vue claire et les prochaines actions prioritaires.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA final -->
+  <div class="text-center mt-5">
+    <a href="/diagnostic-ia/express/" class="btn btn-primary btn-lg">
+      Démarrer le diagnostic (1 min)
+    </a>
+    <p class="text-muted small mt-3 mb-0">
+      Besoin d’un accompagnement ? Vous pourrez réserver un échange à la fin.
+    </p>
+  </div>
+
+</section>
+
+{% endblock %}

@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "widget_tweaks",
     "documents",
     "library",
+    "diagnostic",
 ]
 
 MIDDLEWARE = [

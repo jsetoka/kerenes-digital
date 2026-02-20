@@ -68,6 +68,7 @@ class HomePage(Page):
         "contact.ContactFormPage",
         "contact.DemandeFormationPage",
         "library.DocumentLibraryPage",
+        "diagnostic.DiagnosticIAIndexPage",
     ]
 
     template = "pages/home_page.html"
