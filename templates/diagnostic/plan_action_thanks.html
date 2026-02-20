@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="container py-5" style="max-width: 820px;">
+  <div class="text-center">
+    <h1 class="fw-bold">✅ Demande reçue</h1>
+    <p class="lead mt-3">
+      Merci{% if lead %} {{ lead.nom }}{% endif %}. Nous préparons votre plan d’action personnalisé.
+    </p>
+    <p class="text-muted">
+      Vous recevrez une réponse sous 24–48h ouvrées.
+    </p>
+
+    <div class="mt-4 d-flex justify-content-center gap-2 flex-wrap">
+      <a class="btn btn-primary" href="/diagnostic-ia/resultat/">Retour au résultat</a>
+      <a class="btn btn-outline-secondary" href="/diagnostic-ia/express/">Refaire le diagnostic</a>
+    </div>
+
+    <div class="mt-5 p-4 border rounded text-start">
+      <h4 class="mb-2">En attendant, 3 actions immédiates</h4>
+      <ul class="mb-0">
+        <li>Choisissez un processus répétitif à améliorer en priorité.</li>
+        <li>Centralisez vos fichiers et sécurisez les versions (une source unique).</li>
+        <li>Définissez 3 indicateurs clés à suivre chaque semaine.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+{% endblock %}

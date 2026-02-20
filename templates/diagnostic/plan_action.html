@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<section class="container py-5" style="max-width: 820px;">
+
+  <!-- Header -->
+  <div class="mb-4">
+    <h1 class="fw-bold">Recevoir mon plan d’action personnalisé</h1>
+    <p class="text-muted mb-0">
+      Répondez à 2 questions rapides. Nous préparons une feuille de route adaptée à votre organisation.
+    </p>
+  </div>
+
+  <!-- Context card -->
+  <div class="border rounded p-4 mb-4 bg-light">
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% if lead.niveau %}
+        <span class="badge text-bg-primary">Niveau : {{ lead.niveau }}</span>
+      {% endif %}
+      {% if lead.score_total %}
+        <span class="badge text-bg-dark">Score : {{ lead.score_total }}</span>
+      {% endif %}
+      {% if lead.secteur %}
+        <span class="badge text-bg-secondary">{{ lead.secteur }}</span>
+      {% endif %}
+      {% if lead.priorite %}
+        <span class="badge text-bg-success">Priorité : {{ lead.priorite }}</span>
+      {% endif %}
+    </div>
+
+    <p class="mb-0">
+      <strong>{{ lead.nom }}</strong> — {{ lead.email }}
+      {% if lead.telephone %} • {{ lead.telephone }}{% endif %}
+    </p>
+    <small class="text-muted">
+      Ces informations nous aident à adapter votre plan d’action.
+    </small>
+  </div>
+
+  <!-- Form -->
+  <div class="border rounded p-4">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <!-- Objectif (pré-rempli) -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">{{ form.objectif.label }}</label>
+        {% if form.objectif.errors %}
+          <div class="text-danger small mb-1">{{ form.objectif.errors }}</div>
+        {% endif %}
+        {{ form.objectif }}
+        <div class="form-text">
+          Exemple : “Automatiser les rapports”, “Réduire les coûts”, “Améliorer la décision”.
+        </div>
+      </div>
+
+      <!-- Problème principal -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">{{ form.probleme_principal.label }}</label>
+        {% if form.probleme_principal.errors %}
+          <div class="text-danger small mb-1">{{ form.probleme_principal.errors }}</div>
+        {% endif %}
+        {{ form.probleme_principal }}
+        <div class="form-text">
+          En une phrase : quel est le plus gros blocage aujourd’hui ?
+        </div>
+      </div>
+
+      <!-- Outils actuels -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">{{ form.outils_actuels.label }}</label>
+        {% if form.outils_actuels.errors %}
+          <div class="text-danger small mb-1">{{ form.outils_actuels.errors }}</div>
+        {% endif %}
+        {{ form.outils_actuels }}
+        <div class="form-text">
+          Exemple : Excel, Google Sheets, ERP, Sage, Odoo, papier, WhatsApp, etc.
+        </div>
+      </div>
+
+      <!-- Privacy -->
+      <div class="alert alert-info mb-4">
+        <strong>Confidentialité :</strong> vos informations sont utilisées uniquement pour préparer votre plan d’action.
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        ✅ Demander mon plan d’action
+      </button>
+
+      <p class="text-muted text-center mt-3" style="font-size:0.9rem;">
+        Réponse généralement sous 24–48h ouvrées.
+      </p>
+    </form>
+  </div>
+
+  <!-- Back -->
+  <div class="text-center mt-4">
+    <a href="../resultat/" class="text-decoration-none">← Retour au résultat</a>
+  </div>
+
+</section>
+{% endblock %}

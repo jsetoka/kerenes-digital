@@ -91,17 +91,6 @@ class ContactFormPage(AbstractEmailForm):
         return fb.get_form_class()
 
 
-class DemandeFormationFormBuilder(FormBuilder):
-    def get_form_fields(self):
-        fields = super().get_form_fields()
-        # champ caché toujours présent
-        fields["formation_id"] = forms.CharField(
-            required=False,
-            widget=forms.HiddenInput()
-        )
-        return fields
-
-
 class DemandeFormationFormField(AbstractFormField):
     page = ParentalKey(
         "contact.DemandeFormationPage",
@@ -148,44 +137,7 @@ class DemandeFormationPage(AbstractEmailForm):
     parent_page_types = ["pages.HomePage", "wagtailcore.Page"]
     subpage_types = []
 
-    def get_form_class(self):
-        fb = DemandeFormationFormBuilder(self.form_fields.all())
-        fb.page = self
-        return fb.get_form_class()
-
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
-
-        formation_id = getattr(
-            self, "request", None) and self.request.GET.get("formation_id")
-
-        if formation_id:
-            # ✅ Si le champ n'existe pas, on le crée (anti-KeyError)
-            if "formation_id" not in form.fields:
-                form.fields["formation_id"] = forms.CharField(
-                    required=False,
-                    widget=forms.HiddenInput()
-                )
-
-            form.fields["formation_id"].initial = str(formation_id)
-
-        return form
-
-    def process_form_submission(self, form):
-        """
-        Sécurité: on force l'id depuis l'URL pour éviter qu'il soit modifié côté client.
-        """
-        formation_id = getattr(
-            self, "request", None) and self.request.GET.get("formation_id")
-        if formation_id:
-            form.cleaned_data["formation_id"] = str(formation_id)
-
-        return super().process_form_submission(form)
-
-    def serve(self, request, *args, **kwargs):
-        self.request = request
-        return super().serve(request, *args, **kwargs)
-
+    # 🔹 Seulement le contexte — plus de logique RDV
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
 
@@ -197,11 +149,8 @@ class DemandeFormationPage(AbstractEmailForm):
                 formation_page = Page.objects.get(
                     id=int(formation_id)).specific
                 formation_title = formation_page.title
-            except Page.DoesNotExist:
-                formation_title = None
-            except ValueError:
+            except:
                 formation_title = None
 
-        context["formation_id"] = formation_id
         context["formation_title"] = formation_title
         return context

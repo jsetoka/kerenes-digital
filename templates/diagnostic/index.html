@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags static %}
+
+{% block content %}
+
+<section class="bg-light py-5">
+  <div class="container" style="max-width: 900px;">
+
+    <!-- HERO -->
+    <div class="text-center mb-5">
+      <h1 class="fw-bold display-5">
+        Évaluez le potentiel de l’IA dans votre organisation
+      </h1>
+
+      <p class="lead text-muted mt-3">
+        En 1 minute, découvrez si votre entreprise peut gagner du temps,
+        réduire ses coûts ou améliorer ses décisions grâce à l’intelligence artificielle.
+      </p>
+
+      <a href="{{ page.url }}express/" class="btn btn-primary btn-lg mt-4 px-5">
+        🚀 Démarrer le diagnostic gratuit
+      </a>
+
+      <p class="text-muted mt-3" style="font-size:0.9rem;">
+        Gratuit • Sans engagement • Résultat immédiat
+      </p>
+    </div>
+
+    <!-- BENEFICES -->
+    <div class="row text-center g-4 mt-4">
+
+      <div class="col-md-4">
+        <div class="p-4 border rounded h-100 bg-white">
+          <h4>⏱ Gain de temps</h4>
+          <p class="text-muted">
+            Identifiez les tâches répétitives pouvant être automatisées rapidement.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 border rounded h-100 bg-white">
+          <h4>📊 Meilleures décisions</h4>
+          <p class="text-muted">
+            Comprenez comment exploiter vos données pour piloter votre activité.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 border rounded h-100 bg-white">
+          <h4>💰 Réduction des coûts</h4>
+          <p class="text-muted">
+            Découvrez les pertes invisibles dans vos processus quotidiens.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COMMENT ÇA MARCHE -->
+    <div class="mt-5 pt-4">
+      <h2 class="text-center fw-bold mb-4">Comment ça fonctionne ?</h2>
+
+      <div class="row text-center g-4">
+
+        <div class="col-md-4">
+          <div class="p-3">
+            <div class="fs-1">1️⃣</div>
+            <h5 class="mt-2">Répondez à 5 questions</h5>
+            <p class="text-muted">Diagnostic express (1 minute)</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3">
+            <div class="fs-1">2️⃣</div>
+            <h5 class="mt-2">Recevez votre analyse</h5>
+            <p class="text-muted">Estimation + recommandations</p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3">
+            <div class="fs-1">3️⃣</div>
+            <h5 class="mt-2">Passez à l’action</h5>
+            <p class="text-muted">Plan personnalisé si vous le souhaitez</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CTA FINAL -->
+    <div class="text-center mt-5">
+      <a href="{{ page.url }}express/" class="btn btn-success btn-lg px-5">
+        Commencer maintenant
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

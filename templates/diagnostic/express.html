@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<section class="container py-5" style="max-width: 720px;">
+  <h1 class="fw-bold">Diagnostic IA (1 minute)</h1>
+  <p class="text-muted mb-4">Répondez à 4 questions. Résultat juste après.</p>
+
+  <!-- Progress -->
+  <div class="progress mb-4" style="height: 10px;">
+    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+
+  <form method="post" id="wizardForm" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <!-- STEP 1 -->
+    <div class="wizard-step" data-step="1">
+      <h5 class="mb-3">{{ form.q1.label }}</h5>
+      {% if form.q1.errors %}<div class="text-danger mb-2">{{ form.q1.errors }}</div>{% endif %}
+      {{ form.q1 }}
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="wizard-step d-none" data-step="2">
+      <h5 class="mb-3">{{ form.q2.label }}</h5>
+      {% if form.q2.errors %}<div class="text-danger mb-2">{{ form.q2.errors }}</div>{% endif %}
+      {{ form.q2 }}
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="wizard-step d-none" data-step="3">
+      <h5 class="mb-3">{{ form.q3.label }}</h5>
+      {% if form.q3.errors %}<div class="text-danger mb-2">{{ form.q3.errors }}</div>{% endif %}
+      {{ form.q3 }}
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="wizard-step d-none" data-step="4">
+      <h5 class="mb-3">{{ form.q4.label }}</h5>
+      {% if form.q4.errors %}<div class="text-danger mb-2">{{ form.q4.errors }}</div>{% endif %}
+      {{ form.q4 }}
+    </div>
+
+    <!-- Nav Buttons -->
+    <div class="d-flex gap-2 mt-4">
+      <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>Précédent</button>
+
+      <button type="button" class="btn btn-primary ms-auto" id="nextBtn">Suivant</button>
+
+      <!-- Terminer = submit -->
+      <button type="submit" class="btn btn-success ms-auto d-none" id="submitBtn">Terminer</button>
+    </div>
+
+    <p class="text-muted mt-3" style="font-size:0.9rem;">
+      Question <span id="stepLabel">1</span> / 4
+    </p>
+  </form>
+</section>
+
+<script>
+(function () {
+  const form = document.getElementById("wizardForm");
+  const steps = Array.from(document.querySelectorAll(".wizard-step"));
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const submitBtn = document.getElementById("submitBtn");
+  const stepLabel = document.getElementById("stepLabel");
+  const progressBar = document.getElementById("progressBar");
+
+  const totalSteps = steps.length;
+  let current = 1;
+
+  function showStep(n) {
+    steps.forEach(s => s.classList.add("d-none"));
+    const currentStepEl = steps.find(s => Number(s.dataset.step) === n);
+    if (currentStepEl) currentStepEl.classList.remove("d-none");
+
+    prevBtn.disabled = n === 1;
+
+    // bouton suivant vs terminer
+    if (n === totalSteps) {
+      nextBtn.classList.add("d-none");
+      submitBtn.classList.remove("d-none");
+    } else {
+      nextBtn.classList.remove("d-none");
+      submitBtn.classList.add("d-none");
+    }
+
+    stepLabel.textContent = String(n);
+    const pct = Math.round((n / totalSteps) * 100);
+    progressBar.style.width = pct + "%";
+    progressBar.setAttribute("aria-valuenow", String(pct));
+  }
+
+  function isStepAnswered(n) {
+    const stepEl = steps.find(s => Number(s.dataset.step) === n);
+    if (!stepEl) return true;
+    const inputs = stepEl.querySelectorAll("input, select, textarea");
+    // Si radios/checkbox: au moins un checked
+    const radios = stepEl.querySelectorAll('input[type="radio"]');
+    if (radios.length) return Array.from(radios).some(r => r.checked);
+
+    // Sinon: value non vide
+    return Array.from(inputs).every(i => (i.value || "").trim().length > 0);
+  }
+
+  nextBtn.addEventListener("click", function () {
+    if (!isStepAnswered(current)) {
+      alert("Veuillez répondre à la question avant de continuer.");
+      return;
+    }
+    if (current < totalSteps) {
+      current += 1;
+      showStep(current);
+    }
+  });
+
+  prevBtn.addEventListener("click", function () {
+    if (current > 1) {
+      current -= 1;
+      showStep(current);
+    }
+  });
+
+  // Si le serveur renvoie des erreurs (POST), on se place sur la 1ère question en erreur
+  function goToFirstErrorStep() {
+    const errorField = form.querySelector(".text-danger, .errorlist");
+    if (!errorField) return;
+    // On cherche dans quel step se trouve l'erreur
+    for (const stepEl of steps) {
+      if (stepEl.querySelector(".text-danger, .errorlist")) {
+        current = Number(stepEl.dataset.step);
+        showStep(current);
+        break;
+      }
+    }
+  }
+
+  showStep(current);
+  goToFirstErrorStep();
+})();
+</script>
+{% endblock %}

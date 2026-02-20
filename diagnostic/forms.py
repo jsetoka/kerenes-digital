@@ -1,164 +1,134 @@
+# diagnostic/forms.py
 from django import forms
 
 
-SECTEURS = [
-    ("public", "Administration publique"),
-    ("pme_services", "PME services"),
-    ("industrie_btp", "Industrie / BTP"),
-    ("commerce", "Commerce / distribution"),
-    ("banque", "Banque / finance / assurance"),
-    ("education", "Éducation / université"),
-    ("autre", "Autre"),
-]
-
-TAILLES = [
-    ("1_10", "1–10 employés"),
-    ("11_50", "11–50"),
-    ("51_200", "51–200"),
-    ("200_plus", "200+"),
-]
-
-FONCTIONS = [
-    ("dirigeant", "Dirigeant / DG"),
-    ("manager", "Manager / Chef service"),
-    ("ingenieur", "Ingénieur / analyste"),
-    ("rh_admin", "RH / administratif"),
-    ("it", "IT / informatique"),
-]
-
-URGENCE = [
-    ("faible", "Faible"),
-    ("moyenne", "Moyenne"),
-    ("elevee", "Élevée"),
-]
-
-DONNEES = [
-    ("dispersees", "Dispersées (Excel/WhatsApp/PC)"),
-    ("partielles", "Partielles (quelques outils)"),
-    ("structurees", "Structurées (CRM/ERP/BI)"),
-    ("avancees", "Avancées (Datawarehouse / gouvernance)"),
-]
-
-
-class ExpressDiagnosticForm(forms.Form):
-    q1_secteur = forms.ChoiceField(
-        label="Secteur d’activité", choices=SECTEURS, widget=forms.RadioSelect)
-    q2_taille = forms.ChoiceField(
-        label="Taille de l’organisation", choices=TAILLES, widget=forms.RadioSelect)
-    q3_fonction = forms.ChoiceField(
-        label="Votre fonction", choices=FONCTIONS, widget=forms.RadioSelect)
-    q4_urgence = forms.ChoiceField(
-        label="Urgence d’améliorer performance/coûts ?", choices=URGENCE, widget=forms.RadioSelect)
-    q5_donnees = forms.ChoiceField(
-        label="État actuel de vos données", choices=DONNEES, widget=forms.RadioSelect)
-
-
-CRENEAUX = [
-    ("lun_10_12", "Lundi 10h–12h"),
-    ("lun_14_16", "Lundi 14h–16h"),
-    ("mar_10_12", "Mardi 10h–12h"),
-    ("mar_14_16", "Mardi 14h–16h"),
-    ("mer_10_12", "Mercredi 10h–12h"),
-    ("jeu_14_16", "Jeudi 14h–16h"),
-    ("ven_10_12", "Vendredi 10h–12h"),
-]
-
-CANAL = [
-    ("appel", "Appel"),
-    ("whatsapp", "WhatsApp"),
-    ("visio", "Visio"),
-]
-
-
-class RdvRequestForm(forms.Form):
-    nom = forms.CharField(label="Nom", max_length=120, required=False)
-    email = forms.EmailField(label="Email", required=False)
-    telephone = forms.CharField(
-        label="Téléphone *", max_length=40, required=True)
-
-    creneau = forms.ChoiceField(
-        label="Créneau préféré",
-        choices=CRENEAUX,
-        widget=forms.RadioSelect,
-        required=True,
-    )
-    canal = forms.ChoiceField(
-        label="Canal",
-        choices=CANAL,
-        widget=forms.RadioSelect,
-        initial="appel",
-        required=True,
-    )
-    besoin = forms.CharField(
-        label="Besoin (optionnel)",
-        required=False,
-        widget=forms.Textarea(attrs={"rows": 3}),
-    )
-
-
-RISQUE = [
-    ("faible", "Faible"),
-    ("moyen", "Moyen"),
-    ("eleve", "Élevé"),
-]
-
-PERTES = [
-    ("0_1", "0–1M FCFA / mois"),
-    ("1_5", "1–5M FCFA / mois"),
-    ("5_20", "5–20M FCFA / mois"),
-    ("20_plus", "20M+ / mois"),
-]
-
-STOCKAGE = [
-    ("whatsapp_excel", "WhatsApp / Excel / PC dispersés"),
-    ("drive", "Google Drive / OneDrive (partagé)"),
-    ("crm_erp", "CRM/ERP (structuré)"),
-    ("dwh", "Datawarehouse / gouvernance data"),
-]
-
-USAGE_IA = [
-    ("aucun", "Aucun"),
-    ("ponctuel", "Ponctuel (essais / outils IA)"),
-    ("regulier", "Régulier (quelques cas d’usage)"),
-    ("industrialise", "Industrialisé (process / MLOps / KPI)"),
-]
-
-OBJECTIF = [
-    ("reduction_couts", "Réduction des coûts"),
-    ("gain_temps", "Gain de temps / automatisation"),
-    ("meilleure_decision", "Meilleure décision (pilotage)"),
-    ("croissance", "Croissance / ventes"),
-    ("qualite", "Qualité / conformité / risques"),
-]
-
-REPORTING = [
-    ("quotidien", "Quotidien"),
-    ("hebdo", "Hebdomadaire"),
-    ("mensuel", "Mensuel"),
-    ("rare", "Rare / au besoin"),
-]
-
-PRIORITE = [
-    ("vente_marketing", "Vente / marketing"),
-    ("finance", "Finance / compta"),
-    ("ops", "Opérations / production"),
-    ("rh", "RH / administratif"),
-    ("service_client", "Service client"),
-]
-
-
 class DiagnosticCompletForm(forms.Form):
-    c1_risque_erreur = forms.ChoiceField(
-        label="Risque d’erreur (décisions/ops)", choices=RISQUE, widget=forms.RadioSelect)
-    c2_pertes = forms.ChoiceField(
-        label="Pertes estimées liées aux inefficacités", choices=PERTES, widget=forms.RadioSelect)
-    c3_stockage_data = forms.ChoiceField(
-        label="Où sont stockées vos données ?", choices=STOCKAGE, widget=forms.RadioSelect)
-    c4_usage_ia = forms.ChoiceField(
-        label="Usage actuel de l’IA", choices=USAGE_IA, widget=forms.RadioSelect)
-    c5_objectif = forms.ChoiceField(
-        label="Objectif principal", choices=OBJECTIF, widget=forms.RadioSelect)
-    c6_frequence_reporting = forms.ChoiceField(
-        label="Fréquence de suivi / reporting", choices=REPORTING, widget=forms.RadioSelect)
-    c7_priorite_process = forms.ChoiceField(
-        label="Process prioritaire à améliorer", choices=PRIORITE, widget=forms.RadioSelect)
+    SECTEUR = [
+        ("0", "Administration publique"),
+        ("1", "PME services"),
+        ("2", "Industrie / BTP"),
+        ("2", "Commerce / distribution"),
+        ("3", "Banque / assurance / finance"),
+        ("1", "Éducation / université"),
+        ("1", "Autre"),
+    ]
+    # NOTE: ici j’ai volontairement mis des scores “par défaut” par secteur.
+    # Tu peux les mettre tous à "1" si tu veux un scoring neutre.
+    # L’idée est surtout de garder un format "0..3".
+
+    Q7 = [
+        ("0", "1 personne"),
+        ("1", "2 à 5"),
+        ("2", "6 à 20"),
+        ("3", "Toute une équipe"),
+    ]
+    Q8 = [
+        ("0", "Aucun impact"),
+        ("1", "Retards"),
+        ("2", "Pertes financières / problèmes clients"),
+        ("3", "Risque majeur pour l’activité"),
+    ]
+    Q9 = [
+        ("3", "Papier"),
+        ("2", "Excel isolés"),
+        ("1", "Plusieurs logiciels non connectés"),
+        ("0", "Système centralisé"),
+    ]
+    Q10 = [
+        ("0", "Jamais"),
+        ("1", "Rarement"),
+        ("2", "Plusieurs fois"),
+        ("3", "Régulièrement"),
+    ]
+    Q11 = [
+        ("3", "Inexistante"),
+        ("2", "Utilisée individuellement (ChatGPT)"),
+        ("1", "Testée dans certains services"),
+        ("0", "Intégrée aux processus"),
+    ]
+    PRIORITE = [
+        ("0", "Gain de temps des équipes"),
+        ("1", "Réduction des coûts"),
+        ("2", "Meilleures décisions"),
+        ("2", "Augmenter le chiffre d’affaires"),
+        ("1", "Améliorer la satisfaction client"),
+    ]
+
+    q6 = forms.ChoiceField(label="Secteur d’activité",
+                           choices=SECTEUR, widget=forms.RadioSelect)
+    q7 = forms.ChoiceField(
+        label="Combien de personnes font des tâches répétitives ?", choices=Q7, widget=forms.RadioSelect)
+    q8 = forms.ChoiceField(
+        label="Une erreur de données peut entraîner…", choices=Q8, widget=forms.RadioSelect)
+    q9 = forms.ChoiceField(
+        label="Vos informations sont stockées surtout dans…", choices=Q9, widget=forms.RadioSelect)
+    q10 = forms.ChoiceField(
+        label="Données perdues / mauvaise version ?", choices=Q10, widget=forms.RadioSelect)
+    q11 = forms.ChoiceField(
+        label="L’IA est aujourd’hui dans l’organisation…", choices=Q11, widget=forms.RadioSelect)
+    q12 = forms.ChoiceField(label="Votre priorité business",
+                            choices=PRIORITE, widget=forms.RadioSelect)
+
+    def clean(self):
+        cleaned = super().clean()
+        cleaned["q6_label"] = dict(self.SECTEUR).get(cleaned.get("q6"), "")
+        cleaned["q12_label"] = dict(self.PRIORITE).get(cleaned.get("q12"), "")
+        return cleaned
+
+
+class DiagnosticExpressForm(forms.Form):
+    # On stocke 0..3 pour le score + un label pour exploitation commerciale
+    Q1_CHOICES = [
+        ("0", "1–10 employés"),
+        ("1", "11–50 employés"),
+        ("2", "51–200 employés"),
+        ("3", "200+ employés"),
+    ]
+    Q2_CHOICES = [
+        ("0", "Aucun / très faible"),
+        ("1", "Modéré"),
+        ("2", "Élevé"),
+        ("3", "Très élevé"),
+    ]
+    Q3_CHOICES = [
+        ("0", "Jamais"),
+        ("1", "Parfois"),
+        ("2", "Souvent"),
+        ("3", "Très souvent"),
+    ]
+    Q4_CHOICES = [
+        ("0", "Immédiat"),
+        ("1", "Parfois long"),
+        ("2", "Souvent long"),
+        ("3", "Très difficile"),
+    ]
+
+    q1 = forms.ChoiceField(label="Taille de l’organisation",
+                           choices=Q1_CHOICES, widget=forms.RadioSelect)
+    q2 = forms.ChoiceField(label="Temps perdu en tâches répétitives",
+                           choices=Q2_CHOICES, widget=forms.RadioSelect)
+    q3 = forms.ChoiceField(label="Décisions sans indicateurs fiables",
+                           choices=Q3_CHOICES, widget=forms.RadioSelect)
+    q4 = forms.ChoiceField(label="Retrouver une information interne",
+                           choices=Q4_CHOICES, widget=forms.RadioSelect)
+
+    # Pour garder des labels exploitables côté DB (facultatif mais pratique)
+    def clean(self):
+        cleaned = super().clean()
+        # labels
+        labels = dict(self.Q1_CHOICES)
+        cleaned["q1_label"] = labels.get(cleaned.get("q1"), "")
+        return cleaned
+
+
+class DiagnosticContactForm(forms.Form):
+    nom = forms.CharField(label="Nom", max_length=120)
+    email = forms.EmailField(label="Email professionnel")
+    telephone = forms.CharField(
+        label="Téléphone / WhatsApp (optionnel)", max_length=40, required=False)
+
+
+class PlanActionForm(forms.Form):
+    objectif = forms.CharField(required=False)
+    probleme_principal = forms.CharField(max_length=160)
+    outils_actuels = forms.CharField(required=False, max_length=160)

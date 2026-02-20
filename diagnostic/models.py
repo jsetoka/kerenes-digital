@@ -1,371 +1,317 @@
+# diagnostic/models.py
+import uuid
 from django.db import models
-from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from wagtail.models import Page
-from wagtail.admin.panels import FieldPanel, InlinePanel
-from wagtail.contrib.forms.models import AbstractEmailForm, AbstractFormField
-from modelcluster.fields import ParentalKey
-
-from .forms import ExpressDiagnosticForm, DiagnosticCompletForm, RdvRequestForm
-from .scoring import calcul_score_express, niveau_et_gain
+from wagtail.admin.panels import FieldPanel
+from wagtail.contrib.routable_page.models import RoutablePageMixin, route
+from django.shortcuts import redirect
+from .forms import PlanActionForm
 
 
-# -------------------------
-# DB MODELS (CRM / relance)
-# -------------------------
-
-class DiagnosticSubmission(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    # Lead
-    nom = models.CharField(max_length=120, blank=True)
-    email = models.EmailField(blank=True)
-    telephone = models.CharField(max_length=40, blank=True)
-    entreprise = models.CharField(max_length=160, blank=True)
-    prefere_whatsapp = models.BooleanField(default=False)
-
-    # Réponses Express (5)
-    q1_secteur = models.CharField(max_length=50, blank=True)
-    q2_taille = models.CharField(max_length=50, blank=True)
-    q3_fonction = models.CharField(max_length=50, blank=True)
-    q4_urgence = models.CharField(max_length=50, blank=True)
-    q5_donnees = models.CharField(max_length=50, blank=True)
-
-    # Réponses Complet (7)
-    c1_risque_erreur = models.CharField(max_length=50, blank=True)
-    c2_pertes = models.CharField(max_length=50, blank=True)
-    c3_stockage_data = models.CharField(max_length=50, blank=True)
-    c4_usage_ia = models.CharField(max_length=50, blank=True)
-    c5_objectif = models.CharField(max_length=50, blank=True)
-    c6_frequence_reporting = models.CharField(max_length=50, blank=True)
-    c7_priorite_process = models.CharField(max_length=50, blank=True)
-    complet_done = models.BooleanField(default=False)
-
-    # Scoring
-    score = models.IntegerField(default=0)
-    # critique/intermediaire/avance (ou rouge/orange/vert)
-    niveau = models.CharField(max_length=30, blank=True)
-    estimation_gain = models.CharField(max_length=60, blank=True)
-
-    # Tracking
-    utm_source = models.CharField(max_length=80, blank=True)
-    utm_campaign = models.CharField(max_length=80, blank=True)
-
-    def __str__(self):
-        ident = self.email or self.telephone or self.nom or "Lead"
-        return f"{ident} ({self.created_at:%Y-%m-%d})"
-
-
-class RdvRequest(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    submission = models.ForeignKey(
-        "diagnostic.DiagnosticSubmission",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="rdvs",
-    )
-
-    nom = models.CharField(max_length=120, blank=True)
-    email = models.EmailField(blank=True)
-    telephone = models.CharField(max_length=40)
-
-    creneau = models.CharField(max_length=80)
-    canal = models.CharField(
-        max_length=30,
-        choices=[("appel", "Appel"), ("whatsapp",
-                                      "WhatsApp"), ("visio", "Visio")],
-        default="appel",
-    )
-    besoin = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"RDV {self.creneau} - {self.telephone}"
-
-
-# -------------------------
-# WAGTAIL PAGES (Tunnel IA)
-# -------------------------
-
-# PAGE A — Landing
-class DiagnosticIAIndexPage(Page):
-    template = "diagnostic/diagnostic_ia_index_page.html"
-
+class DiagnosticIAIndexPage(RoutablePageMixin, Page):
+    template = "diagnostic/index.html"
     intro = models.TextField(blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
     ]
 
-    subpage_types = [
-        "diagnostic.DiagnosticExpressPage",
-        "diagnostic.CaptureLeadPage",
-        "diagnostic.DiagnosticCompletPage",
-        "diagnostic.DiagnosticResultatPage",
-        "diagnostic.DiagnosticRdvPage",
-    ]
+    def get_session_key(self, request):
+        if not request.session.session_key:
+            request.session.create()
+        return request.session.session_key
 
+    @route(r"^express/$")
+    def express(self, request):
+        from .forms import DiagnosticExpressForm
+        from .models import compute_score_express
 
-# PAGE B — Express
-class DiagnosticExpressPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_express_page.html"
-
-    def serve(self, request):
         if request.method == "POST":
-            form = ExpressDiagnosticForm(request.POST)
+            form = DiagnosticExpressForm(request.POST)
             if form.is_valid():
-                request.session["diag_express"] = form.cleaned_data
-                request.session.modified = True
-                return redirect("/diagnostic-ia/recevoir-resultat/")
+                reponses = form.cleaned_data
+                score = compute_score_express(reponses)
+
+                request.session["diag_express"] = reponses
+                request.session["diag_score_express"] = score
+                return redirect(self.url + "contact/")
         else:
-            form = ExpressDiagnosticForm(
-                initial=request.session.get("diag_express", {}))
+            form = DiagnosticExpressForm()
 
-        return render(request, self.template, {"page": self, "form": form})
-
-
-# PAGE C — Capture lead (Wagtail Form)
-class FormField(AbstractFormField):
-    page = ParentalKey(
-        "diagnostic.CaptureLeadPage",
-        on_delete=models.CASCADE,
-        related_name="form_fields",
-    )
-
-
-class CaptureLeadPage(AbstractEmailForm):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/capture_lead_page.html"
-    landing_page_template = "diagnostic/capture_lead_thanks.html"
-
-    intro = models.TextField(blank=True)
-
-    content_panels = AbstractEmailForm.content_panels + [
-        FieldPanel("intro"),
-        InlinePanel("form_fields", label="Champs du formulaire"),
-        FieldPanel("to_address"),
-        FieldPanel("from_address"),
-        FieldPanel("subject"),
-    ]
-
-    def get_context(self, request, *args, **kwargs):
-        context = super().get_context(request, *args, **kwargs)
-        context["next_step"] = request.GET.get("next", "")
-        return context
-
-    def process_form_submission(self, form):
-        submission = super().process_form_submission(form)
-
-        request = form.request  # Wagtail injecte request dans le form
-        express = request.session.get("diag_express", {})
-        # ✅ si l'utilisateur a fait "complet" avant le lead
-        complet = request.session.get("diag_complet", {})
-
-        data = form.cleaned_data
-        nom = data.get("nom", "")
-        email = data.get("email", "")
-        telephone = data.get("telephone", "")
-        entreprise = data.get("entreprise", "")
-        prefere_whatsapp = bool(data.get("prefere_whatsapp", False))
-
-        # tracking UTM
-        utm_source = request.GET.get(
-            "utm_source", "") or request.session.get("utm_source", "")
-        utm_campaign = request.GET.get(
-            "utm_campaign", "") or request.session.get("utm_campaign", "")
-
-        # score minimal sur express (si express absent, score=0)
-        score = calcul_score_express(express)
-        niveau, gain = niveau_et_gain(score)
-
-        # Crée la soumission persistante CRM
-        sub = DiagnosticSubmission.objects.create(
-            nom=nom,
-            email=email,
-            telephone=telephone,
-            entreprise=entreprise,
-            prefere_whatsapp=prefere_whatsapp,
-
-            q1_secteur=express.get("q1_secteur", ""),
-            q2_taille=express.get("q2_taille", ""),
-            q3_fonction=express.get("q3_fonction", ""),
-            q4_urgence=express.get("q4_urgence", ""),
-            q5_donnees=express.get("q5_donnees", ""),
-
-            # complet (si dispo)
-            c1_risque_erreur=complet.get("c1_risque_erreur", ""),
-            c2_pertes=complet.get("c2_pertes", ""),
-            c3_stockage_data=complet.get("c3_stockage_data", ""),
-            c4_usage_ia=complet.get("c4_usage_ia", ""),
-            c5_objectif=complet.get("c5_objectif", ""),
-            c6_frequence_reporting=complet.get("c6_frequence_reporting", ""),
-            c7_priorite_process=complet.get("c7_priorite_process", ""),
-            complet_done=bool(complet),
-
-            score=score,
-            niveau=niveau,
-            estimation_gain=gain,
-
-            utm_source=utm_source,
-            utm_campaign=utm_campaign,
+        return self.render(
+            request,
+            template="diagnostic/express.html",
+            context_overrides={"form": form},
         )
 
-        # garde l’ID en session pour Résultat/CRM
-        request.session["diag_last_id"] = sub.id
-        request.session.modified = True
+    @route(r"^contact/$")
+    def contact(self, request):
+        from .forms import DiagnosticContactForm
+        from .models import DiagnosticLead
 
-        return submission
+        if "diag_express" not in request.session:
+            return redirect(self.url + "express/")
 
+        if request.method == "POST":
+            form = DiagnosticContactForm(request.POST)
+            if form.is_valid():
+                session_key = self.get_session_key(request)
+                reponses_express = request.session.get("diag_express", {})
+                score_express = int(
+                    request.session.get("diag_score_express", 0))
 
-# PAGE D — Complet (accessible même sans lead)
-class DiagnosticCompletPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_complet_page.html"
+                lead = DiagnosticLead.objects.create(
+                    session_key=session_key,
+                    public_id=uuid.uuid4(),
+                    nom=form.cleaned_data["nom"],
+                    email=form.cleaned_data["email"],
+                    telephone=form.cleaned_data.get("telephone", ""),
 
-    def serve(self, request):
-        last_id = request.session.get("diag_last_id")
-        sub = DiagnosticSubmission.objects.filter(
-            id=last_id).first() if last_id else None
+                    score_express=score_express,
+                    score_total=score_express,  # provisoire avant complet
+                    taille=reponses_express.get("q1_label", ""),
+                    reponses_express=reponses_express,
+                )
+
+                request.session["diag_lead_id"] = lead.id
+                return redirect(self.url + "complet/")
+        else:
+            form = DiagnosticContactForm()
+
+        return self.render(
+            request,
+            template="diagnostic/contact.html",
+            context_overrides={"form": form},
+        )
+
+    @route(r"^complet/$")
+    def complet(self, request):
+        from .forms import DiagnosticCompletForm
+        from .models import DiagnosticLead, compute_score_complet, compute_niveau
+
+        lead_id = request.session.get("diag_lead_id")
+        if not lead_id:
+            return redirect(self.url + "express/")
+
+        lead = DiagnosticLead.objects.filter(id=lead_id).first()
+        if not lead:
+            return redirect(self.url + "express/")
 
         if request.method == "POST":
             form = DiagnosticCompletForm(request.POST)
             if form.is_valid():
-                data = form.cleaned_data
+                reponses = form.cleaned_data
+                score_complet = compute_score_complet(reponses)
 
-                # ✅ Si lead existe : on enregistre direct en DB
-                if sub:
-                    for k, v in data.items():
-                        setattr(sub, k, v)
-                    sub.complet_done = True
+                lead.reponses_complet = reponses
+                lead.score_complet = score_complet
+                lead.score_total = lead.score_express + score_complet
+                lead.niveau = compute_niveau(lead.score_total)
 
-                    # recalcul score (express + pondération complet)
-                    express = request.session.get("diag_express", {})
-                    score = calcul_score_express(express)
+                # infos business utiles
+                lead.secteur = reponses.get("q6_label", "")
+                lead.priorite = reponses.get("q12_label", "")
+                lead.save()
 
-                    score += {"faible": 5, "moyen": 10,
-                              "eleve": 15}.get(sub.c1_risque_erreur, 0)
-                    score += {"0_1": 5, "1_5": 10, "5_20": 15,
-                              "20_plus": 20}.get(sub.c2_pertes, 0)
-                    score += {"whatsapp_excel": 0, "drive": 5,
-                              "crm_erp": 10, "dwh": 15}.get(sub.c3_stockage_data, 0)
-                    score += {"aucun": 0, "ponctuel": 5, "regulier": 10,
-                              "industrialise": 15}.get(sub.c4_usage_ia, 0)
-
-                    niveau, gain = niveau_et_gain(score)
-                    sub.score = min(score, 100)
-                    sub.niveau = niveau
-                    sub.estimation_gain = gain
-                    sub.save()
-
-                    return redirect("/diagnostic-ia/resultat/")
-
-                # ✅ Sinon : on stocke en session, puis on demande le lead
-                request.session["diag_complet"] = data
-                request.session.modified = True
-                return redirect("/diagnostic-ia/recevoir-resultat/?next=complet")
-
+                return redirect(self.url + "resultat/")
         else:
-            # pré-remplissage
-            if sub and sub.complet_done:
-                initial = {
-                    "c1_risque_erreur": sub.c1_risque_erreur,
-                    "c2_pertes": sub.c2_pertes,
-                    "c3_stockage_data": sub.c3_stockage_data,
-                    "c4_usage_ia": sub.c4_usage_ia,
-                    "c5_objectif": sub.c5_objectif,
-                    "c6_frequence_reporting": sub.c6_frequence_reporting,
-                    "c7_priorite_process": sub.c7_priorite_process,
-                }
-            else:
-                initial = request.session.get("diag_complet", {})
+            form = DiagnosticCompletForm()
 
-            form = DiagnosticCompletForm(initial=initial)
+        return self.render(
+            request,
+            template="diagnostic/complet.html",
+            context_overrides={"form": form, "lead": lead},
+        )
 
-        return render(request, self.template, {"page": self, "form": form, "lead": sub})
+    @route(r"^resultat/$")
+    def resultat(self, request):
+        from .models import DiagnosticLead
 
+        lead_id = request.session.get("diag_lead_id")
+        if not lead_id:
+            return redirect(self.url + "express/")
 
-# PAGE E — Résultat
-class DiagnosticResultatPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_resultat_page.html"
+        lead = DiagnosticLead.objects.filter(id=lead_id).first()
+        if not lead:
+            return redirect(self.url + "express/")
 
-    def serve(self, request):
-        last_id = request.session.get("diag_last_id")
+        niveau = lead.niveau or "opportunite"
+        score = lead.score_total
 
-        # 1) lecture DB
-        if last_id:
-            sub = DiagnosticSubmission.objects.filter(id=last_id).first()
-            if sub:
-                return render(request, self.template, {
-                    "page": self,
-                    "score": sub.score,
-                    "niveau": sub.niveau,
-                    "estimation_gain": sub.estimation_gain,
-                    "lead": sub,
-                    "from_db": True,
-                })
+        if niveau == "sensibilisation":
+            titre = "Niveau 1 — Sensibilisation"
+            gain = "≈ +5% à +10%"
+            reco = [
+                "Former les équipes aux bases de l’IA et de la data",
+                "Choisir 1 processus répétitif à améliorer rapidement",
+                "Centraliser vos fichiers et sécuriser les versions",
+            ]
+        elif niveau == "opportunite":
+            titre = "Niveau 2 — Opportunité d’automatisation"
+            gain = "≈ +10% à +25%"
+            reco = [
+                "Automatiser 1–2 tâches à forte répétition (rapports, saisies, contrôle)",
+                "Mettre en place 3 indicateurs clés (tableau de bord)",
+                "Structurer le stockage (référentiel + droits + versions)",
+            ]
+        else:
+            titre = "Niveau 3 — Prêt pour un projet IA rentable"
+            gain = "≈ +20% à +40%"
+            reco = [
+                "Cadrer un cas d’usage prioritaire avec ROI (4–6 semaines)",
+                "Mettre en place qualité des données + gouvernance",
+                "Lancer un POC IA (assistant interne / automatisation / prédiction)",
+            ]
 
-        # 2) fallback session express
-        express = request.session.get("diag_express")
-        if express:
-            score = calcul_score_express(express)
-            niveau, gain = niveau_et_gain(score)
-            return render(request, self.template, {
-                "page": self,
+        return self.render(
+            request,
+            template="diagnostic/resultat.html",
+            context_overrides={
+                "lead": lead,
+                "titre": titre,
+                "gain": gain,
+                "reco": reco,
                 "score": score,
-                "niveau": niveau,
-                "estimation_gain": gain,
-                "from_db": False,
-            })
+            },
+        )
 
-        return redirect("/diagnostic-ia/express/")
+    @route(r"^plan-action/$")
+    def plan_action(self, request):
+        # 1) essayer session
 
+        lead_id = request.session.get("diag_lead_id")
+        print("request", lead_id)
+        lead = None
 
-# PAGE F — RDV
-class DiagnosticRdvPage(Page):
-    parent_page_types = ["diagnostic.DiagnosticIAIndexPage"]
-    template = "diagnostic/diagnostic_rdv_page.html"
+        if lead_id:
+            lead = DiagnosticLead.objects.filter(id=lead_id).first()
+        print("lean", lead)
+        # 2) fallback token URL ?k=...
+        if not lead:
+            token = request.GET.get("k")
+            if token:
+                lead = DiagnosticLead.objects.filter(public_id=token).first()
 
-    intro = models.TextField(blank=True)
-    calendly_url = models.URLField(
-        blank=True, help_text="Si renseigné, on affiche Calendly (embed).")
-
-    content_panels = Page.content_panels + [
-        FieldPanel("intro"),
-        FieldPanel("calendly_url"),
-    ]
-
-    def serve(self, request):
-        last_id = request.session.get("diag_last_id")
-        sub = DiagnosticSubmission.objects.filter(
-            id=last_id).first() if last_id else None
-
-        # Calendly
-        if self.calendly_url:
-            return render(request, self.template, {"page": self, "lead": sub})
-
-        # Form interne
+        if not lead:
+            return redirect(self.url + "express/")
+        print("POST", request.method)
         if request.method == "POST":
-            form = RdvRequestForm(request.POST)
+            form = PlanActionForm(request.POST)
             if form.is_valid():
-                data = form.cleaned_data
-                RdvRequest.objects.create(
-                    submission=sub,
-                    nom=data.get("nom") or (sub.nom if sub else ""),
-                    email=data.get("email") or (sub.email if sub else ""),
-                    telephone=data["telephone"],
-                    creneau=data["creneau"],
-                    canal=data["canal"],
-                    besoin=data.get("besoin", ""),
+                req = PlanActionRequest.objects.create(
+                    lead=lead,
+                    objectif=form.cleaned_data.get(
+                        "objectif") or lead.priorite,
+                    probleme_principal=form.cleaned_data["probleme_principal"],
+                    outils_actuels=form.cleaned_data.get("outils_actuels", ""),
                 )
-                return redirect(self.url + "?ok=1")
-        else:
-            initial = {}
-            if sub:
-                initial = {"nom": sub.nom, "email": sub.email,
-                           "telephone": sub.telephone}
-            form = RdvRequestForm(initial=initial)
 
-        return render(request, self.template, {"page": self, "form": form, "lead": sub})
+                # email simple (à toi + confirmation)
+                from django.core.mail import send_mail
+                send_mail(
+                    subject="Nouvelle demande de plan d’action",
+                    message=f"Nom: {lead.nom}\nEmail: {lead.email}\nTel: {lead.telephone}\n"
+                            f"Niveau: {lead.niveau} Score:{lead.score_total}\n"
+                            f"Objectif: {req.objectif}\nProblème: {req.probleme_principal}\nOutils: {req.outils_actuels}\n",
+                    from_email=None,
+                    # mets ton email
+                    recipient_list=["contact@kerenes-digital.com"],
+                    fail_silently=True,
+                )
+                return redirect(self.url + "plan-action/merci/")
+        else:
+            # GET -> afficher le formulaire pré-rempli
+            form = PlanActionForm(initial={"objectif": lead.priorite or ""})
+
+        return self.render(
+            request,
+            template="diagnostic/plan_action.html",
+            context_overrides={"form": form, "lead": lead},
+        )
+
+    @route(r"^plan-action/merci/?$")
+    def plan_action_merci(self, request):
+        # Optionnel : récupérer le lead pour personnaliser le message
+        lead = None
+        lead_id = request.session.get("diag_lead_id")
+        if lead_id:
+            lead = DiagnosticLead.objects.filter(id=lead_id).first()
+
+        if not lead:
+            token = request.GET.get("k")
+            if token:
+                lead = DiagnosticLead.objects.filter(public_id=token).first()
+
+        return self.render(
+            request,
+            template="diagnostic/plan_action_thanks.html",
+            context_overrides={"lead": lead},
+        )
+
+
+class DiagnosticLead(models.Model):
+    session_key = models.CharField(max_length=64, db_index=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    public_id = models.UUIDField(
+        null=True, blank=True, editable=False, db_index=True)
+    nom = models.CharField(max_length=120)
+    email = models.EmailField()
+    telephone = models.CharField(max_length=40, blank=True)
+
+    score_express = models.IntegerField(default=0)
+    score_complet = models.IntegerField(default=0)
+    score_total = models.IntegerField(default=0)
+    # sensibilisation / opportunite / pret
+    niveau = models.CharField(max_length=20, blank=True)
+
+    taille = models.CharField(max_length=40, blank=True)
+    secteur = models.CharField(max_length=50, blank=True)
+    priorite = models.CharField(max_length=50, blank=True)
+
+    reponses_express = models.JSONField(default=dict, blank=True)
+    reponses_complet = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return f"{self.nom} - {self.email}"
+
+
+# --- scoring helpers ---
+
+def score_from_keys(data: dict, keys: list[str]) -> int:
+    # attend des valeurs "0".."3" pour chaque clé
+    return sum(int(data.get(k, "0")) for k in keys)
+
+
+def compute_score_express(data: dict) -> int:
+    return score_from_keys(data, ["q1", "q2", "q3", "q4"])
+
+
+def compute_score_complet(data: dict) -> int:
+    # Q8 (risque) est un levier fort → bonus si "3"
+    base = score_from_keys(data, ["q6", "q7", "q8", "q9", "q10", "q11", "q12"])
+    bonus = 2 if data.get("q8") == "3" else 0
+    return base + bonus
+
+
+def compute_niveau(score_total: int) -> str:
+    # Ajuste les seuils si besoin après quelques semaines de data
+    if score_total <= 12:
+        return "sensibilisation"
+    if score_total <= 22:
+        return "opportunite"
+    return "pret"
+
+
+class PlanActionRequest(models.Model):
+    lead = models.ForeignKey("diagnostic.DiagnosticLead",
+                             on_delete=models.CASCADE, related_name="plans")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    objectif = models.CharField(max_length=100, blank=True)
+    probleme_principal = models.CharField(max_length=160)
+    outils_actuels = models.CharField(max_length=160, blank=True)
+
+    # nouveau / en_cours / envoyé
+    statut = models.CharField(max_length=30, default="nouveau")

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="container py-5" style="max-width: 820px;">
+  <h1 class="fw-bold">{{ titre }}</h1>
+  <p class="lead">Gain potentiel estimé : <strong>{{ gain }}</strong></p>
+  <p class="text-muted">Score : {{ score }}</p>
+
+  <h3 class="mt-4">3 recommandations prioritaires</h3>
+  <ul>
+    {% for r in reco %}
+      <li>{{ r }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="mt-4 p-4 border rounded">
+    <h4 class="mb-2">Recevoir un plan d’action personnalisé</h4>
+    <p class="mb-3">Nous vous envoyons une feuille de route adaptée à votre organisation.</p>
+    <a class="btn btn-primary" href="../plan-action/?k={{ lead.public_id }}">Demander le plan d’action</a>
+  </div>
+</section>
+{% endblock %}
