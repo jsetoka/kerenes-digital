@@ -93,6 +93,13 @@ class HomePage(Page):
         max_num=1
     )
 
+    blog_index = models.ForeignKey(
+        "wagtailcore.Page",
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="Sélectionne la page Blog (index) pour tirer les articles récents."
+    )
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel("hero_title"),
@@ -102,6 +109,10 @@ class HomePage(Page):
             PageChooserPanel("hero_cta_page"),
             FieldPanel("hero_cta_url"),
         ], heading="Bannière (Hero)"),
+
+        MultiFieldPanel([
+            PageChooserPanel("blog_index"),
+        ], heading="Blog (articles récents)"),
         FieldPanel("hero_promise"),
         FieldPanel("body"),
     ]
@@ -119,6 +130,21 @@ class HomePage(Page):
     ]
 
     template = "pages/home_page.html"
+
+    def get_context(self, request):
+        context = super().get_context(request)
+
+        # Si ton modèle d’article s’appelle blog.BlogPage
+        from blog.models import BlogPage
+
+        qs = BlogPage.objects.live().public().order_by("-first_published_at")
+
+        # Option: si tu as sélectionné un BlogIndexPage, on filtre ses descendants
+        if self.blog_index:
+            qs = qs.descendant_of(self.blog_index)
+
+        context["recent_posts"] = qs[:3]  # <-- nombre d'articles à afficher
+        return context
 
 
 class StandardPage(Page):

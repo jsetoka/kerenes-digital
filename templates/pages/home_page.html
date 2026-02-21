@@ -109,6 +109,39 @@
                 </div>
               </div>
 
+
+              {% if recent_posts %}
+
+                <div class="d-flex justify-content-between align-items-end mb-3">
+                  {% if page.blog_index %}
+                    <a class="small text-decoration-none" href="{{ page.blog_index.url }}">Voir tout →</a>
+                  {% endif %}
+                </div>
+
+                <div class="row g-4">
+                  {% for post in recent_posts %}
+                    <div >
+                      <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                          <h5 class="fw-bold mb-2">
+                            <a class="text-decoration-none" href="{{ post.url }}">{{ post.title }}</a>
+                          </h5>
+                          <div class="text-muted small mb-2">
+                            {{ post.first_published_at|date:"d M Y" }}
+                          </div>
+                          {% if post.search_description %}
+                            <p class="text-muted mb-0">{{ post.search_description }}</p>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+
+              {% endif %}
+
+
+
               <div class="mt-4">
                 {% if card.button_page %}
                   <a class="btn btn-dark w-100" href="{{ card.button_page.url }}">
