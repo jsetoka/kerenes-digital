@@ -118,22 +118,12 @@ class FormationsIndexPage(Page):
         use_json_field=True,
         blank=True,
     )
-    body = StreamField(
-        [
-            ("paragraphe", blocks.RichTextBlock(features=[
-             "h2", "h3", "bold", "italic", "link", "ol", "ul"])),
-            ("image", ImageChooserBlock()),
-        ],
-        use_json_field=True,
-        blank=True,
-    )
     parent_page_types = ["pages.HomePage", "wagtailcore.Page"]  # ✅ au choix
     # ✅ seulement les formations dedans
     subpage_types = ["pages.FormationPage"]
 
     content_panels = Page.content_panels + [
         FieldPanel("intro"),
-        FieldPanel("body"),
     ]
 
     def get_context(self, request):
