@@ -66,57 +66,66 @@
         </div>
       </div>
 
-      {# Carte de confiance / promesse #}
+      {# Carte de confiance / promesse configurable #}
       <div class="col-12 col-lg-5">
         <div class="card border-0 shadow-lg bg-white text-dark">
           <div class="card-body p-4 p-md-5">
-            <div class="d-flex align-items-start gap-3">
-              <div class="fs-3">🚀</div>
-              <div>
-                <div class="fw-bold h5 mb-1">Votre performance commence par vos données</div>
-                <div class="text-muted">
-                  Nous construisons des systèmes mesurables et automatisés : du diagnostic jusqu’au déploiement.
-                </div>
-              </div>
-            </div>
 
-            <hr class="my-4">
+            {% with card=page.hero_promise.0.value %}
+              <div class="d-flex align-items-start gap-3">
+                <div class="fs-3">{{ card.icon|default:"🚀" }}</div>
+                <div>
+                  <div class="fw-bold h5 mb-1">{{ card.title }}</div>
+                  <div class="text-muted">{{ card.text }}</div>
+                </div>
+              </div>
 
-            <div class="row g-3">
-              <div class="col-6">
-                <div class="p-3 rounded bg-light">
-                  <div class="fw-semibold">Comprendre</div>
-                  <div class="text-muted small">audit & données</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="p-3 rounded bg-light">
-                  <div class="fw-semibold">Construire</div>
-                  <div class="text-muted small">apps & outils</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="p-3 rounded bg-light">
-                  <div class="fw-semibold">Automatiser</div>
-                  <div class="text-muted small">process & IA</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="p-3 rounded bg-light">
-                  <div class="fw-semibold">Optimiser</div>
-                  <div class="text-muted small">KPI & perf</div>
-                </div>
-              </div>
-            </div>
+              <hr class="my-4">
 
-            <div class="mt-4">
-              <a class="btn btn-dark w-100" href="/demande-de-formation/">
-                Demander un diagnostic
-              </a>
-            </div>
-            <div class="text-muted small text-center mt-2">
-              Réponse rapide • Offre adaptée à votre contexte
-            </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="p-3 rounded bg-light">
+                    <div class="fw-semibold">{{ card.step_1_title }}</div>
+                    <div class="text-muted small">{{ card.step_1_text }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 rounded bg-light">
+                    <div class="fw-semibold">{{ card.step_2_title }}</div>
+                    <div class="text-muted small">{{ card.step_2_text }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 rounded bg-light">
+                    <div class="fw-semibold">{{ card.step_3_title }}</div>
+                    <div class="text-muted small">{{ card.step_3_text }}</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="p-3 rounded bg-light">
+                    <div class="fw-semibold">{{ card.step_4_title }}</div>
+                    <div class="text-muted small">{{ card.step_4_text }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                {% if card.button_page %}
+                  <a class="btn btn-dark w-100" href="{{ card.button_page.url }}">
+                    {{ card.button_label }}
+                  </a>
+                {% elif card.button_url %}
+                  <a class="btn btn-dark w-100" href="{{ card.button_url }}" target="_blank" rel="noopener">
+                    {{ card.button_label }}
+                  </a>
+                {% endif %}
+              </div>
+
+              {% if card.footnote %}
+                <div class="text-muted small text-center mt-2">{{ card.footnote }}</div>
+              {% endif %}
+            {% endwith %}
+
           </div>
         </div>
       </div>

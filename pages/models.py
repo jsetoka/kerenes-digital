@@ -7,6 +7,9 @@ from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PageChooserPanel
 from .blocks import ServicesBlock, CardsBlock, CTABlock
 
 
+from wagtail.models import Page
+
+
 class HomePage(Page):
     # HERO
     hero_title = models.CharField(max_length=120, blank=True)
@@ -47,6 +50,49 @@ class HomePage(Page):
         blank=True,
     )
 
+    hero_promise = StreamField(
+        [
+            ("promise_card", blocks.StructBlock([
+                ("icon", blocks.CharBlock(required=False, default="🚀")),
+                ("title", blocks.CharBlock(required=True, max_length=120,
+                 default="Votre performance commence par vos données")),
+                ("text", blocks.TextBlock(required=False,
+                 default="Nous construisons des systèmes mesurables et automatisés : du diagnostic jusqu’au déploiement.")),
+
+                ("step_1_title", blocks.CharBlock(
+                    required=False, default="Comprendre")),
+                ("step_1_text", blocks.CharBlock(
+                    required=False, default="audit & données")),
+
+                ("step_2_title", blocks.CharBlock(
+                    required=False, default="Construire")),
+                ("step_2_text", blocks.CharBlock(
+                    required=False, default="apps & outils")),
+
+                ("step_3_title", blocks.CharBlock(
+                    required=False, default="Automatiser")),
+                ("step_3_text", blocks.CharBlock(
+                    required=False, default="process & IA")),
+
+                ("step_4_title", blocks.CharBlock(
+                    required=False, default="Optimiser")),
+                ("step_4_text", blocks.CharBlock(
+                    required=False, default="KPI & perf")),
+
+                ("button_label", blocks.CharBlock(
+                    required=False, default="Demander un diagnostic")),
+                ("button_page", blocks.PageChooserBlock(required=False)),
+                ("button_url", blocks.URLBlock(required=False)),
+
+                ("footnote", blocks.CharBlock(required=False,
+                 default="Réponse rapide • Offre adaptée à votre contexte")),
+            ])),
+        ],
+        use_json_field=True,
+        blank=True,
+        max_num=1
+    )
+
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel("hero_title"),
@@ -56,13 +102,14 @@ class HomePage(Page):
             PageChooserPanel("hero_cta_page"),
             FieldPanel("hero_cta_url"),
         ], heading="Bannière (Hero)"),
+        FieldPanel("hero_promise"),
         FieldPanel("body"),
     ]
 
     parent_page_types = ["wagtailcore.Page"]
     subpage_types = [
         "pages.StandardPage",
-        "pages.FormationsIndexPage",          # ✅ AJOUT ICI (catalogue)
+        "formation.FormationsIndexPage",
         "blog.BlogIndexPage",
         "blog.BlogPage",
         "contact.ContactFormPage",
@@ -104,127 +151,4 @@ class StandardPage(Page):
         ], heading="En-tête (Hero)"),
         FieldPanel("intro"),
         FieldPanel("body"),
-    ]
-
-
-class FormationsIndexPage(Page):
-    template = "pages/formations_index_page.html"  # ✅ recommandé
-    intro = StreamField(
-        [
-            ("paragraphe", blocks.RichTextBlock(features=[
-             "h2", "h3", "bold", "italic", "link", "ol", "ul"])),
-            ("image", ImageChooserBlock()),
-        ],
-        use_json_field=True,
-        blank=True,
-    )
-    parent_page_types = ["pages.HomePage", "wagtailcore.Page"]  # ✅ au choix
-    # ✅ seulement les formations dedans
-    subpage_types = ["pages.FormationPage"]
-
-    content_panels = Page.content_panels + [
-        FieldPanel("intro"),
-    ]
-
-    def get_context(self, request):
-        context = super().get_context(request)
-        context["formations"] = (
-            self.get_children()
-            .live()
-            .public()
-            .specific()
-        )
-        return context
-
-
-class FormationPage(Page):
-    template = "pages/formation_page.html"  # ✅ tu l'as déjà
-
-    parent_page_types = ["pages.FormationsIndexPage"]  # ✅ IMPORTANT
-    subpage_types = []  # ✅ pas d'enfants
-
-    duree = models.CharField(max_length=50)
-    public_cible = models.CharField(max_length=255)
-
-    objectif = RichTextField(blank=True)
-    prerequis = RichTextField(blank=True)
-    programme = RichTextField(blank=True)
-
-    niveau = models.CharField(
-        max_length=50,
-        choices=[
-            ("decouverte", "Découverte"),
-            ("pratique", "Pratique"),
-            ("technique", "Technique"),
-            ("expert", "Expert"),
-        ]
-    )
-
-    modalite = models.CharField(
-        max_length=50,
-        choices=[
-            ("presentiel", "Présentiel"),
-            ("distanciel", "Distanciel"),
-            ("hybride", "Hybride"),
-        ],
-        default="presentiel"
-    )
-
-    # ✅ TARIFS
-    prix_individuel = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Ex: 150 000 FCFA"
-    )
-
-    prix_entreprise = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Ex: 2 200 000 FCFA ou Sur devis"
-    )
-
-    inclus = RichTextField(
-        blank=True,
-        help_text="Optionnel : ce qui est inclus (supports, attestation, coaching, etc.)"
-    )
-
-    # ✅ CTA
-    cta_label = models.CharField(
-        max_length=80,
-        blank=True,
-        default="Demander cette formation"
-    )
-    cta_page = models.ForeignKey(
-        "wagtailcore.Page",
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
-        related_name="+"
-    )
-    cta_url = models.URLField(blank=True)
-
-    content_panels = Page.content_panels + [
-        MultiFieldPanel([
-            FieldPanel("niveau"),
-            FieldPanel("duree"),
-            FieldPanel("public_cible"),
-            FieldPanel("modalite"),
-        ], heading="Informations générales"),
-
-        MultiFieldPanel([
-            FieldPanel("prix_individuel"),
-            FieldPanel("prix_entreprise"),
-            FieldPanel("inclus"),
-        ], heading="Tarification"),
-
-
-        FieldPanel("objectif"),
-        FieldPanel("prerequis"),
-        FieldPanel("programme"),
-
-        # ✅ Panneau CTA
-        MultiFieldPanel([
-            FieldPanel("cta_label"),
-            PageChooserPanel("cta_page"),
-            FieldPanel("cta_url"),
-        ], heading="Bouton d’appel à l’action (CTA)"),
     ]
