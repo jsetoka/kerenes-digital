@@ -8,6 +8,7 @@ from wagtail.admin.panels import FieldPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, route
 from django.shortcuts import redirect
 from .forms import PlanActionForm
+from django.core.mail import send_mail
 
 
 class DiagnosticIAIndexPage(RoutablePageMixin, Page):
@@ -209,7 +210,6 @@ class DiagnosticIAIndexPage(RoutablePageMixin, Page):
                 )
 
                 # email simple (à toi + confirmation)
-                from django.core.mail import send_mail
                 send_mail(
                     subject="Nouvelle demande de plan d’action",
                     message=f"Nom: {lead.nom}\nEmail: {lead.email}\nTel: {lead.telephone}\n"
