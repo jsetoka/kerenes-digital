@@ -19,16 +19,16 @@ class FormField(AbstractFormField):
 
 
 class ConsentFormBuilder(FormBuilder):
-    """
-    Ajoute un champ 'consent' à la fin du formulaire.
-    """
-
     def get_form_fields(self):
         fields = super().get_form_fields()
-        # On laisse FormBuilder construire le reste, puis on ajoute 'consent'
+
+        required = True
+        if hasattr(self, "page") and self.page:
+            required = self.page.consent_required
+
         fields["consent"] = forms.BooleanField(
-            label="",  # on affichera le texte depuis la page (consent_text)
-            required=self.page.consent_required,
+            label="",
+            required=required,
         )
         return fields
 
@@ -83,12 +83,21 @@ class ContactFormPage(AbstractEmailForm):
         ),
     ]
 
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+
+        # Ajoute le champ consent à la fin
+        form.fields["consent"] = forms.BooleanField(
+            label="",
+            required=self.consent_required,
+        )
+        return form
+
     # Utilise notre builder qui ajoute 'consent'
-    def get_form_class(self):
+    def get_form_builder(self):
         fb = ConsentFormBuilder(self.form_fields.all())
-        # Fournir la page au builder pour connaître consent_required
         fb.page = self
-        return fb.get_form_class()
+        return fb
 
 
 class DemandeFormationFormField(AbstractFormField):
