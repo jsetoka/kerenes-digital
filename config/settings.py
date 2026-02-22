@@ -50,10 +50,11 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "true").lower() == "true"
 
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL", "Kerene's Digital <no-reply@kerenes-digital.com>")
-
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SITE_URL = os.getenv("SITE_URL", "https://kerenes-digital.com")
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
