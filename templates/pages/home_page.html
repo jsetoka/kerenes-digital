@@ -115,24 +115,22 @@
                   {% endif %}
                 </div>
 
-                <div class="row g-4">
-                  {% for post in recent_posts %}
-                    <div >
-                      <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body">
-                          <h5 class="fw-bold mb-2 fs-6">
-                            <a class="text-decoration-none" href="{{ post.url }}">{{ post.title }}</a>
-                          </h5>
-                          <div class="text-muted small mb-2">
-                            {{ post.first_published_at|date:"d M Y" }}
-                          </div>
-                          {% if post.search_description %}
-                            <p class="text-muted mb-0">{{ post.search_description }}</p>
+                <div class="row g-6">
+                  <ul class="list-unstyled m-0">
+                    {% for post in recent_posts %}
+                        <li class="mb-3 d-flex gap-3">
+                          {% if post.image %}
+                            {% image post.image fill-80x80 class="rounded flex-shrink-0" %}
                           {% endif %}
-                        </div>
-                      </div>
-                    </div>
-                  {% endfor %}
+                          <div>
+                            <a class="fw-semibold text-decoration-none" href="{{ post.url }}">
+                              {{ post.title }}
+                            </a>
+                            <div class="text-muted small">{{ post.date }}</div>
+                          </div>
+                        </li>
+                    {% endfor %}
+                  </ul>
                 </div>
 
               {% endif %}
