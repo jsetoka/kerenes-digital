@@ -26,9 +26,7 @@ services:
       - db
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:alpine
     restart: unless-stopped
     ports:
       - "8000:80"
