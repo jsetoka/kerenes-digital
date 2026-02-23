@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.25-alpine
     depends_on:
       - web
     ports:
