@@ -118,8 +118,8 @@ class DemandeFormationFormField(AbstractFormField):
 
 
 class DemandeFormationPage(AbstractEmailForm):
-    template = "contact/demande_formation_page.html"
-    landing_page_template = "contact/demande_formation_page_landing.html"
+    template = "formation/demande_page.html"
+    landing_page_template = "formation/demande_landing_page.html"
 
     intro = RichTextField(blank=True)
     thank_you_text = RichTextField(blank=True)
