@@ -1,6 +1,30 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags %}
 
+{% block meta_description %}
+Formations professionnelles en intelligence artificielle, data et automatisation : apprenez à passer à l’action avec des cas pratiques et des outils directement exploitables.
+{% endblock %}
+
+{% block og_description %}{% endblock %}
+{% block twitter_title %}{% block og_title %}{% endblock %}{% endblock %}
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebPage",
+  "name":"Formations IA & Digital",
+  "url":"{{ request.build_absolute_uri }}",
+  "description":"Formations professionnelles en intelligence artificielle, data et automatisation.",
+  "publisher":{
+    "@type":"Organization",
+    "name":"Kerene's Digital",
+    "url":"{{ request.scheme }}://{{ request.get_host }}/"
+  }
+}
+</script>
+{% endblock %}
+
+
 {% block content %}
 <section class="container py-5">
 
