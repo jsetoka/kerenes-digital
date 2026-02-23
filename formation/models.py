@@ -2,10 +2,12 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from wagtail import blocks
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PageChooserPanel
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel, PageChooserPanel, InlinePanel
 from wagtail.fields import RichTextField, StreamField
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.models import Page
+from modelcluster.fields import ParentalKey
+from wagtail.contrib.forms.models import AbstractEmailForm, AbstractFormField
 
 
 class FormationsIndexPage(Page):
@@ -159,3 +161,74 @@ class FormationPage(Page):
             raise ValidationError(
                 {"cta_url": "Choisis soit une page (cta_page), soit une URL (cta_url), pas les deux."}
             )
+
+
+class DemandeFormationFormField(AbstractFormField):
+    page = ParentalKey(
+        "formation.FormationRequestPage",
+        on_delete=models.CASCADE,
+        related_name="form_fields",
+    )
+
+    panels = [
+        FieldPanel("label"),
+        FieldPanel("clean_name"),     # ✅ le “Nom interne”
+        FieldPanel("field_type"),
+        FieldPanel("required"),
+        FieldPanel("choices"),
+        FieldPanel("default_value"),
+        FieldPanel("help_text"),
+    ]
+
+
+class FormationRequestPage(AbstractEmailForm):
+    template = "formation/demande_page.html"
+    landing_page_template = "formation/demande_landing_page.html"
+
+    intro = RichTextField(blank=True)
+    thank_you_text = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        MultiFieldPanel(
+            [
+                InlinePanel("form_fields", label="Champs du formulaire"),
+            ],
+            heading="Formulaire",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("to_address"),
+                FieldPanel("from_address"),
+                FieldPanel("subject"),
+            ],
+            heading="Emails (réception)",
+        ),
+        FieldPanel("thank_you_text"),
+    ]
+
+    parent_page_types = ["pages.HomePage", "wagtailcore.Page"]
+    subpage_types = []
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+
+        formation_id = request.GET.get("formation_id")
+        formation_title = None
+
+        if formation_id:
+            try:
+                formation_page = (
+                    FormationPage.objects
+                    .live()
+                    .public()
+                    .get(id=int(formation_id))
+                )
+                formation_title = formation_page.title
+            except (ValueError, FormationPage.DoesNotExist):
+                formation_id = None
+                formation_title = None
+
+        context["formation_id"] = formation_id
+        context["formation_title"] = formation_title
+        return context

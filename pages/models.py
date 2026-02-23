@@ -124,7 +124,7 @@ class HomePage(Page):
         "blog.BlogIndexPage",
         "blog.BlogPage",
         "contact.ContactFormPage",
-        "contact.DemandeFormationPage",
+        "formation.FormationRequestPage",
         "library.DocumentLibraryPage",
         "diagnostic.DiagnosticIAIndexPage",
     ]
